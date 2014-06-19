@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>DataBase QUnit Tests</title>
+        <link rel="stylesheet" href="resources/qunit.css" />
+        
+        
+        <script src="resources/qunit.js"></script>
+        <script src="../DataBase.js"></script>
+    </head>
+    <body>
+        <div id="qunit"></div>
+        <div id="qunit-fixture"></div>
+
+        <script>
+            // <![CDATA[
+
+            module('DataBase');
+
+
+
+
+
+            var SetTestDataBase = function () {
+                var Cliente = [{
+                    Name: 'Nome',
+                    Type: 'String',
+                    AllowSet: true,
+                    AllowNull: false,
+                    AllowEmpty: false,
+                    Unique: false,
+                    ReadOnly: false,
+                    Default: null,
+                    Format: null
+                },
+                 {
+                     Name: 'Login',
+                     Type: 'String',
+                     AllowSet: true,
+                     AllowNull: false,
+                     AllowEmpty: false,
+                     Unique: true,
+                     ReadOnly: true,
+                     Default: null,
+                     Format: function (v) { return v.toLowerCase(); }
+                 },
+                 {
+                     Name: 'Senha',
+                     Type: 'String',
+                     AllowSet: true,
+                     AllowNull: false,
+                     AllowEmpty: false,
+                     Unique: false,
+                     ReadOnly: false,
+                     Default: null,
+                     Format: null
+                 },
+                 {
+                     Name: 'CPF',
+                     Type: 'String',
+                     AllowSet: true,
+                     AllowNull: true,
+                     AllowEmpty: false,
+                     Unique: true,
+                     ReadOnly: false,
+                     Default: null,
+                     Format: null
+                 },
+                 {
+                     Name: 'CNPJ',
+                     Type: 'String',
+                     AllowSet: true,
+                     AllowNull: true,
+                     AllowEmpty: false,
+                     Unique: true,
+                     ReadOnly: false,
+                     Default: null,
+                     Format: null
+                 },
+                 {
+                     Name: 'DataNascimento',
+                     Type: 'Date',
+                     AllowSet: true,
+                     AllowNull: false,
+                     AllowEmpty: false,
+                     Unique: false,
+                     ReadOnly: true,
+                     Default: null,
+                     Format: null
+                 },
+                 {
+                     Name: 'Idade',
+                     Type: 'Integer',
+                     AllowSet: false,
+                     AllowNull: false,
+                     AllowEmpty: false,
+                     Unique: false,
+                     ReadOnly: true,
+                     Default: null,
+                     Format: null
+                 }];
+
+
+
+                if (DataBase.CreateTable('Cliente', Cliente)) {
+                    if (DataBase.CreateTable('Cliente', Cliente)) {
+                        alert('1 - Erro ao inserir tabela.')
+                    }
+                    else {
+                        SetTestsObject();
+                    }
+                }
+                else {
+                    alert('2- Erro ao inserir tabela.')
+                }
+            };
+
+
+
+            var TestObject = function () {
+                return {
+                    Nome: 'Fulano de tal',
+                    Login: 'FULANODETAL@GMAIL.COM',
+                    Senha: '123456',
+                    CPF: null,
+                    CNPJ: null,
+                    DataNascimento: new Date(2000, 4, 17),
+                    Idade: 10
+                };
+            };
+
+
+
+            var SetTestsObject = function () {
+                var o1 = {
+                    Nome: 'Segundo fulano que não será adicionado',
+                    Login: 'FULANODETAL@GMAIL.COM',
+                    Senha: '654321',
+                    CPF: '111',
+                    CNPJ: null,
+                    DataNascimento: new Date(2001, 4, 17)
+                };
+                var o2 = {
+                    Nome: 'Segundo',
+                    Login: 'segundo@fulano.com',
+                    Senha: '654321',
+                    CPF: '111',
+                    CNPJ: null,
+                    DataNascimento: new Date(2010, 4, 17)
+                };
+                var o3 = {
+                    Nome: 'Terceiro',
+                    Login: 'terceiro@fulano.com',
+                    Senha: '111222',
+                    CPF: '222',
+                    CNPJ: null,
+                    DataNascimento: new Date(2014, 4, 17)
+                };
+                var o4 = {
+                    Nome: 'Quarto',
+                    Login: 'quarto@fulano.com',
+                    Senha: '654321',
+                    CPF: '333',
+                    CNPJ: null,
+                    DataNascimento: new Date(1998, 4, 17)
+                };
+                var o5 = {
+                    Nome: 'Quinto',
+                    Login: 'quinto@fulano.com',
+                    Senha: '654321',
+                    CPF: '444',
+                    CNPJ: null,
+                    DataNascimento: new Date(1999, 4, 17)
+                };
+                var o6 = {
+                    Nome: 'Sexto',
+                    Login: 'sexto@fulano.com',
+                    Senha: '111222',
+                    CPF: '555',
+                    CNPJ: null,
+                    DataNascimento: new Date(2005, 4, 17)
+                };
+                var o7 = {
+                    Nome: 'Setimo',
+                    Login: 'setimo@fulano.com',
+                    Senha: '654321',
+                    CPF: '666',
+                    CNPJ: null,
+                    DataNascimento: new Date(2008, 4, 17)
+                };
+
+                var o0 = TestObject();
+                DataBase.InsertInto('Cliente', o0);
+                DataBase.InsertInto('Cliente', o1);
+                DataBase.InsertInto('Cliente', o2);
+                DataBase.InsertInto('Cliente', o3);
+                DataBase.InsertInto('Cliente', o4);
+                DataBase.InsertInto('Cliente', o5);
+                DataBase.InsertInto('Cliente', o6);
+                DataBase.InsertInto('Cliente', o7);
+            };
+
+
+
+
+
+
+
+
+
+
+            test('CreateTable', function () {
+                DataBase.ResetDataBase();
+                SetTestDataBase();
+
+
+                var db = DataBase.RetrieveDataBase();
+
+                equal(db.length, 1, '');
+                equal(db[0].Name, 'Cliente', '');
+                equal(db[0].Columns.length, 8, '');
+            });
+
+
+
+
+
+
+
+
+
+
+            test('Count', function () {
+                DataBase.ResetDataBase();
+                SetTestDataBase();
+
+                var c = DataBase.Count('Cliente');
+                equal(c, 7, '');
+
+            });
+
+
+
+
+
+
+
+
+
+
+            test('HasObject', function () {
+                DataBase.ResetDataBase();
+                SetTestDataBase();
+
+                ok(DataBase.HasObject('Cliente', 1), '');
+                ok(DataBase.HasObject('Cliente', 2), '');
+                ok(DataBase.HasObject('Cliente', 3), '');
+                ok(DataBase.HasObject('Cliente', 4), '');
+                ok(DataBase.HasObject('Cliente', 5), '');
+                ok(DataBase.HasObject('Cliente', 6), '');
+                ok(DataBase.HasObject('Cliente', 7), '');
+
+            });
+
+
+
+
+
+
+
+
+
+            test('InsertInto', function () {
+                DataBase.ResetDataBase();
+                SetTestDataBase();
+
+
+
+                var oCliente = TestObject();
+
+
+                // VERIFICA SE OS DADOS INSERIDOS CONFEREM COM O OBJETO RETORNADO
+                var db = DataBase.RetrieveDataBase();
+                equal(db[0].Rows.length, 7, '');
+
+                equal(db[0].Rows[0].Nome, oCliente.Nome, '');
+                equal(db[0].Rows[0].Login, oCliente.Login.toLowerCase(), '');
+                equal(db[0].Rows[0].Senha, oCliente.Senha, '');
+                equal(db[0].Rows[0].CPF, oCliente.CPF, '');
+                equal(db[0].Rows[0].CNPJ, oCliente.CNPJ, '');
+                equal(JSON.stringify(db[0].Rows[0].DataNascimento), JSON.stringify(oCliente.DataNascimento), '');
+                equal(db[0].Rows[0].Idade, null, '');
+            });
+
+
+
+
+
+
+
+
+
+
+            test('UpdateSet', function () {
+                DataBase.ResetDataBase();
+                SetTestDataBase();
+
+
+                var oCliente = TestObject();
+
+                oCliente['Id'] = 1;
+                oCliente['Nome'] = 'Novo Nome';
+                oCliente['Login'] = 'novologin@gmail.com'; // Este não pode mudar
+                oCliente['CPF'] = '999.888.777-55';
+                oCliente['CNPJ'] = '99.888.777.666-55';
+
+                DataBase.UpdateSet('Cliente', oCliente);
+
+                var c = DataBase.SelectObject('Cliente', 1);
+                var e = 0;
+
+                equal(c['Id'], oCliente['Id'], '');
+                equal(c['Nome'], oCliente['Nome'], '');
+                equal(c['Login'], 'fulanodetal@gmail.com'.toLowerCase(), '');
+                equal(c['CPF'], oCliente['CPF'], '');
+                equal(c['CNPJ'], oCliente['CNPJ'], '');
+            });
+
+
+
+
+
+
+
+
+
+
+            test('DeleteFrom', function () {
+                DataBase.ResetDataBase();
+                SetTestDataBase();
+
+                var c = DataBase.Count('Cliente');
+                equal(c, 7, '');
+                ok(DataBase.HasObject('Cliente', 4), '');
+
+                DataBase.DeleteFrom('Cliente', 4);
+
+
+                var c = DataBase.Count('Cliente');
+                equal(c, 6, '');
+                ok(!DataBase.HasObject('Cliente', 4), '');
+            });
+
+
+
+
+
+
+
+
+
+
+            test('SelectObject', function () {
+                DataBase.ResetDataBase();
+                SetTestDataBase();
+
+
+                var oCliente = TestObject();
+
+
+                // Corrige objeto original para posterior comparação
+                oCliente['Id'] = 1;
+                oCliente['Idade'] = null;
+                oCliente['Login'] = oCliente['Login'].toLowerCase();
+
+                var c = DataBase.SelectObject('Cliente', 1);
+                for (var it in c) {
+                    if (Object.prototype.toString.call(c[it]) == '[object Date]') {
+                        equal(c[it].toString(), oCliente[it].toString(), '');
+                    }
+                    else {
+                        equal(c[it], oCliente[it], '');
+                    }
+                }
+
+            });
+
+
+
+
+
+
+
+
+
+
+            test('SelectObjectList', function () {
+                DataBase.ResetDataBase();
+                SetTestDataBase();
+
+
+                // Teste da primeira página
+                var page = DataBase.SelectObjectList('Cliente', { PageNumber: 1, PageLength: 3 });
+                equal(page.TotalRows, 7, '');
+                equal(page.ValidRows, 7, '');
+                equal(page.PageLength, 3, '');
+                equal(page.TotalPages, 3, '');
+                equal(page.PageNumber, 1, '');
+                equal(page.SelectedRows.length, 3, '');
+
+                equal(page.SelectedRows[0]['Id'], 1, '');
+                equal(page.SelectedRows[0]['Nome'], 'Fulano de tal', '');
+                equal(page.SelectedRows[1]['Id'], 2, '');
+                equal(page.SelectedRows[1]['Nome'], 'Segundo', '');
+                equal(page.SelectedRows[2]['Id'], 3, '');
+                equal(page.SelectedRows[2]['Nome'], 'Terceiro', '');
+
+
+
+                
+                // Teste da segunda página
+                var page = DataBase.SelectObjectList('Cliente', { PageNumber: 2, PageLength: 3 });
+                equal(page.TotalRows, 7, '');
+                equal(page.ValidRows, 7, '');
+                equal(page.PageLength, 3, '');
+                equal(page.TotalPages, 3, '');
+                equal(page.PageNumber, 2, '');
+                equal(page.SelectedRows.length, 3, '');
+
+
+                equal(page.SelectedRows[0]['Id'], 4, '');
+                equal(page.SelectedRows[0]['Nome'], 'Quarto', '');
+                equal(page.SelectedRows[1]['Id'], 5, '');
+                equal(page.SelectedRows[1]['Nome'], 'Quinto', '');
+                equal(page.SelectedRows[2]['Id'], 6, '');
+                equal(page.SelectedRows[2]['Nome'], 'Sexto', '');
+
+
+
+
+
+                // Teste da segunda página
+                var page = DataBase.SelectObjectList('Cliente', { PageNumber: 3, PageLength: 3 });
+                equal(page.TotalRows, 7, '');
+                equal(page.ValidRows, 7, '');
+                equal(page.PageLength, 3, '');
+                equal(page.TotalPages, 3, '');
+                equal(page.PageNumber, 3, '');
+                equal(page.SelectedRows.length, 1, '');
+
+
+                equal(page.SelectedRows[0]['Id'], 7, '');
+                equal(page.SelectedRows[0]['Nome'], 'Setimo', '');
+
+            });
+
+
+
+
+
+
+
+
+
+
+            test('SelectObjectList : Order By', function () {
+                DataBase.ResetDataBase();
+                SetTestDataBase();
+
+
+                // Resgata objetos na ordem padrão
+                var page = DataBase.SelectObjectList('Cliente', { PageNumber: 1, PageLength: 7 });
+                equal(page.SelectedRows[0]['Id'], 1, '');
+                equal(page.SelectedRows[1]['Id'], 2, '');
+                equal(page.SelectedRows[2]['Id'], 3, '');
+                equal(page.SelectedRows[3]['Id'], 4, '');
+                equal(page.SelectedRows[4]['Id'], 5, '');
+                equal(page.SelectedRows[5]['Id'], 6, '');
+                equal(page.SelectedRows[6]['Id'], 7, '');
+
+
+               
+                // Inverte a ordenação por ID
+                var page = DataBase.SelectObjectList('Cliente', { PageNumber: 1, PageLength: 7, OrderBy: 'Id desc' });
+                equal(page.SelectedRows[6]['Id'], 1, '');
+                equal(page.SelectedRows[5]['Id'], 2, '');
+                equal(page.SelectedRows[4]['Id'], 3, '');
+                equal(page.SelectedRows[3]['Id'], 4, '');
+                equal(page.SelectedRows[2]['Id'], 5, '');
+                equal(page.SelectedRows[1]['Id'], 6, '');
+                equal(page.SelectedRows[0]['Id'], 7, '');
+
+
+
+                // Ordena por Nome DESC
+                var page = DataBase.SelectObjectList('Cliente', { PageNumber: 1, PageLength: 7, OrderBy: 'Nome desc' });
+                equal(page.SelectedRows[0]['Nome'], 'Terceiro', 'Order By "Nome desc"');
+                equal(page.SelectedRows[1]['Nome'], 'Sexto', 'Order By "Nome desc"');
+                equal(page.SelectedRows[2]['Nome'], 'Setimo', 'Order By "Nome desc"');
+                equal(page.SelectedRows[3]['Nome'], 'Segundo', 'Order By "Nome desc"');
+                equal(page.SelectedRows[4]['Nome'], 'Quinto', 'Order By "Nome desc"');
+                equal(page.SelectedRows[5]['Nome'], 'Quarto', 'Order By "Nome desc"');
+                equal(page.SelectedRows[6]['Nome'], 'Fulano de tal', 'Order By "Nome desc"');
+
+
+
+                // Ordena por Nome ASC
+                var page = DataBase.SelectObjectList('Cliente', { PageNumber: 1, PageLength: 7, OrderBy: 'Nome asc' });
+                equal(page.SelectedRows[6]['Nome'], 'Terceiro', 'Order By "Nome desc"');
+                equal(page.SelectedRows[5]['Nome'], 'Sexto', 'Order By "Nome desc"');
+                equal(page.SelectedRows[4]['Nome'], 'Setimo', 'Order By "Nome desc"');
+                equal(page.SelectedRows[3]['Nome'], 'Segundo', 'Order By "Nome desc"');
+                equal(page.SelectedRows[2]['Nome'], 'Quinto', 'Order By "Nome desc"');
+                equal(page.SelectedRows[1]['Nome'], 'Quarto', 'Order By "Nome desc"');
+                equal(page.SelectedRows[0]['Nome'], 'Fulano de tal', 'Order By "Nome desc"');
+
+
+
+                // Ordena por DataNascimento ASC
+                var page = DataBase.SelectObjectList('Cliente', { PageNumber: 1, PageLength: 7, OrderBy: 'DataNascimento asc' });
+                equal(page.SelectedRows[0]['DataNascimento'].getFullYear(), 1998, 'Order By "DataNascimento asc"');
+                equal(page.SelectedRows[1]['DataNascimento'].getFullYear(), 1999, 'Order By "DataNascimento asc"');
+                equal(page.SelectedRows[2]['DataNascimento'].getFullYear(), 2000, 'Order By "DataNascimento asc"');
+                equal(page.SelectedRows[3]['DataNascimento'].getFullYear(), 2005, 'Order By "DataNascimento asc"');
+                equal(page.SelectedRows[4]['DataNascimento'].getFullYear(), 2008, 'Order By "DataNascimento asc"');
+                equal(page.SelectedRows[5]['DataNascimento'].getFullYear(), 2010, 'Order By "DataNascimento asc"');
+                equal(page.SelectedRows[6]['DataNascimento'].getFullYear(), 2014, 'Order By "DataNascimento asc"');
+
+
+
+                // Ordena por DataNascimento DESC
+                var page = DataBase.SelectObjectList('Cliente', { PageNumber: 1, PageLength: 7, OrderBy: 'DataNascimento desc' });
+                equal(page.SelectedRows[6]['DataNascimento'].getFullYear(), 1998, 'Order By "DataNascimento desc"');
+                equal(page.SelectedRows[5]['DataNascimento'].getFullYear(), 1999, 'Order By "DataNascimento desc"');
+                equal(page.SelectedRows[4]['DataNascimento'].getFullYear(), 2000, 'Order By "DataNascimento desc"');
+                equal(page.SelectedRows[3]['DataNascimento'].getFullYear(), 2005, 'Order By "DataNascimento desc"');
+                equal(page.SelectedRows[2]['DataNascimento'].getFullYear(), 2008, 'Order By "DataNascimento desc"');
+                equal(page.SelectedRows[1]['DataNascimento'].getFullYear(), 2010, 'Order By "DataNascimento desc"');
+                equal(page.SelectedRows[0]['DataNascimento'].getFullYear(), 2014, 'Order By "DataNascimento desc"');
+
+
+
+                // Ordena por CPF ASC [Contendo valor nulo]
+                var page = DataBase.SelectObjectList('Cliente', { PageNumber: 1, PageLength: 7, OrderBy: 'CPF asc' });
+                equal(page.SelectedRows[0]['CPF'], null, 'Order By "CPF asc"');
+                equal(page.SelectedRows[1]['CPF'], '111', 'Order By "CPF asc"');
+                equal(page.SelectedRows[2]['CPF'], '222', 'Order By "CPF asc"');
+                equal(page.SelectedRows[3]['CPF'], '333', 'Order By "CPF asc"');
+                equal(page.SelectedRows[4]['CPF'], '444', 'Order By "CPF asc"');
+                equal(page.SelectedRows[5]['CPF'], '555', 'Order By "CPF asc"');
+                equal(page.SelectedRows[6]['CPF'], '666', 'Order By "CPF asc"');
+
+
+
+                // Ordena por CPF DESC [Contendo valor nulo]
+                var page = DataBase.SelectObjectList('Cliente', { PageNumber: 1, PageLength: 7, OrderBy: 'CPF desc' });
+                equal(page.SelectedRows[6]['CPF'], null, 'Order By "CPF desc"');
+                equal(page.SelectedRows[5]['CPF'], '111', 'Order By "CPF desc"');
+                equal(page.SelectedRows[4]['CPF'], '222', 'Order By "CPF desc"');
+                equal(page.SelectedRows[3]['CPF'], '333', 'Order By "CPF desc"');
+                equal(page.SelectedRows[2]['CPF'], '444', 'Order By "CPF desc"');
+                equal(page.SelectedRows[1]['CPF'], '555', 'Order By "CPF desc"');
+                equal(page.SelectedRows[0]['CPF'], '666', 'Order By "CPF desc"');
+
+            });
+
+
+            // ]]>
+        </script>
+    </body>
+</html>
