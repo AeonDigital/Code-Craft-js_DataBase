@@ -29,6 +29,7 @@ mesmos.
 * `HasObject`                   : Indica se o objeto existe ou não na tabela de dados indicada a partir de seu Id.
 * `InsertInto`                  : Insere uma nova linha de dados em uma tabela.
 * `UpdateSet`                   : Atualiza uma linha de dados em uma tabela.
+* `SaveOrUpdate`                : Insere ou atualiza uma linha de dados em uma tabela.
 * `DeleteFrom`                  : Remove uma linha de dados de uma tabela.
 * `SelectObject`                : Seleciona e retorn uma linha de dados da tabela alvo.
 * `SelectObjectList`            : Seleciona várias linhas de dados da tabela alvo.

@@ -23,6 +23,58 @@
 
 
             var SetTestDataBase = function () {
+                var Endereco = [{
+                    Name: 'Logradouro',
+                    Type: 'String',
+                    AllowSet: true,
+                    AllowNull: false,
+                    AllowEmpty: false,
+                    Unique: false,
+                    ReadOnly: false,
+                    Default: null,
+                    Format: null
+                },
+                {
+                    Name: 'Numero',
+                    Type: 'Integer',
+                    AllowSet: true,
+                    AllowNull: false,
+                    AllowEmpty: false,
+                    Unique: false,
+                    ReadOnly: false,
+                    Default: null,
+                    Format: null
+                }
+                ];
+
+
+
+                var Telefone = [{
+                    Name: 'Numero',
+                    Type: 'String',
+                    AllowSet: true,
+                    AllowNull: false,
+                    AllowEmpty: false,
+                    Unique: false,
+                    ReadOnly: false,
+                    Default: null,
+                    Format: null
+                },
+                {
+                    Name: 'Movel',
+                    Type: 'Boolean',
+                    AllowSet: true,
+                    AllowNull: false,
+                    AllowEmpty: false,
+                    Unique: false,
+                    ReadOnly: false,
+                    Default: true,
+                    Format: null
+                }
+                ];
+
+
+
                 var Cliente = [{
                     Name: 'Nome',
                     Type: 'String',
@@ -99,11 +151,40 @@
                      ReadOnly: true,
                      Default: null,
                      Format: null
-                 }];
+                 },
+                 {
+                     Name: 'Endereco',
+                     Type: 'Object',
+                     RefType: 'Endereco',
+                     AllowSet: true,
+                     AllowNull: true,
+                     AllowEmpty: false,
+                     Unique: false,
+                     ReadOnly: false,
+                     Default: null,
+                     Format: null
+                 },
+                 {
+                     Name: 'Telefones',
+                     Type: 'Object[]',
+                     RefType: 'Telefone',
+                     AllowSet: true,
+                     AllowNull: true,
+                     AllowEmpty: false,
+                     Unique: false,
+                     ReadOnly: false,
+                     Default: null,
+                     Format: null
+                 }
+                 ];
 
 
 
                 if (DataBase.CreateTable('Cliente', Cliente)) {
+                    DataBase.CreateTable('Telefone', Telefone);
+                    DataBase.CreateTable('Endereco', Endereco);
+
+
                     if (DataBase.CreateTable('Cliente', Cliente)) {
                         alert('1 - Erro ao inserir tabela.')
                     }
@@ -126,7 +207,9 @@
                     CPF: null,
                     CNPJ: null,
                     DataNascimento: new Date(2000, 4, 17),
-                    Idade: 10
+                    Idade: 10,
+                    Endereco: null,
+                    Telefones: null
                 };
             };
 
@@ -139,7 +222,9 @@
                     Senha: '654321',
                     CPF: '111',
                     CNPJ: null,
-                    DataNascimento: new Date(2001, 4, 17)
+                    DataNascimento: new Date(2001, 4, 17),
+                    Endereco: null,
+                    Telefones: null
                 };
                 var o2 = {
                     Nome: 'Segundo',
@@ -147,7 +232,9 @@
                     Senha: '654321',
                     CPF: '111',
                     CNPJ: null,
-                    DataNascimento: new Date(2010, 4, 17)
+                    DataNascimento: new Date(2010, 4, 17),
+                    Endereco: null,
+                    Telefones: null
                 };
                 var o3 = {
                     Nome: 'Terceiro',
@@ -155,7 +242,9 @@
                     Senha: '111222',
                     CPF: '222',
                     CNPJ: null,
-                    DataNascimento: new Date(2014, 4, 17)
+                    DataNascimento: new Date(2014, 4, 17),
+                    Endereco: null,
+                    Telefones: null
                 };
                 var o4 = {
                     Nome: 'Quarto',
@@ -163,7 +252,9 @@
                     Senha: '654321',
                     CPF: '333',
                     CNPJ: null,
-                    DataNascimento: new Date(1998, 4, 17)
+                    DataNascimento: new Date(1998, 4, 17),
+                    Endereco: null,
+                    Telefones: null
                 };
                 var o5 = {
                     Nome: 'Quinto',
@@ -171,7 +262,9 @@
                     Senha: '654321',
                     CPF: '444',
                     CNPJ: null,
-                    DataNascimento: new Date(1999, 4, 17)
+                    DataNascimento: new Date(1999, 4, 17),
+                    Endereco: null,
+                    Telefones: null
                 };
                 var o6 = {
                     Nome: 'Sexto',
@@ -179,7 +272,9 @@
                     Senha: '111222',
                     CPF: '555',
                     CNPJ: null,
-                    DataNascimento: new Date(2005, 4, 17)
+                    DataNascimento: new Date(2005, 4, 17),
+                    Endereco: null,
+                    Telefones: null
                 };
                 var o7 = {
                     Nome: 'Setimo',
@@ -187,7 +282,9 @@
                     Senha: '654321',
                     CPF: '666',
                     CNPJ: null,
-                    DataNascimento: new Date(2008, 4, 17)
+                    DataNascimento: new Date(2008, 4, 17),
+                    Endereco: null,
+                    Telefones: null
                 };
 
                 var o0 = TestObject();
@@ -209,7 +306,7 @@
 
 
 
-
+            
             test('CreateTable', function () {
                 DataBase.ResetDataBase();
                 SetTestDataBase();
@@ -217,9 +314,9 @@
 
                 var db = DataBase.RetrieveDataBase();
 
-                equal(db.length, 1, '');
+                equal(db.length, 3, '');
                 equal(db[0].Name, 'Cliente', '');
-                equal(db[0].Columns.length, 8, '');
+                equal(db[0].Columns.length, 10, '');
             });
 
 
@@ -301,7 +398,6 @@
 
 
 
-
             test('UpdateSet', function () {
                 DataBase.ResetDataBase();
                 SetTestDataBase();
@@ -374,10 +470,15 @@
                 oCliente['Idade'] = null;
                 oCliente['Login'] = oCliente['Login'].toLowerCase();
 
+
                 var c = DataBase.SelectObject('Cliente', 1);
                 for (var it in c) {
-                    if (Object.prototype.toString.call(c[it]) == '[object Date]') {
+                    var tp = Object.prototype.toString.call(c[it]);
+                    if (tp == '[object Date]') {
                         equal(c[it].toString(), oCliente[it].toString(), '');
+                    }
+                    else if (tp == '[object Array]' && it == 'Telefones') {
+                        equal(JSON.stringify(c[it]), JSON.stringify([]), '');
                     }
                     else {
                         equal(c[it], oCliente[it], '');
@@ -418,7 +519,7 @@
 
 
 
-                
+
                 // Teste da segunda página
                 var page = DataBase.SelectObjectList('Cliente', { PageNumber: 2, PageLength: 3 });
                 equal(page.TotalRows, 7, '');
@@ -480,7 +581,7 @@
                 equal(page.SelectedRows[6]['Id'], 7, '');
 
 
-               
+
                 // Inverte a ordenação por ID
                 var page = DataBase.SelectObjectList('Cliente', { PageNumber: 1, PageLength: 7, OrderBy: 'Id desc' });
                 equal(page.SelectedRows[6]['Id'], 1, '');
@@ -565,6 +666,68 @@
 
             });
 
+
+
+
+
+
+
+
+
+
+            test('InsertInto - child', function () {
+                DataBase.ResetDataBase();
+                SetTestDataBase();
+
+
+
+                var oCliente = {
+                    Nome: 'Cliente Com Endereço',
+                    Login: 'ccendereco@gmail.com',
+                    Senha: '123456',
+                    CPF: null,
+                    CNPJ: null,
+                    DataNascimento: new Date(2000, 4, 17),
+                    Idade: 10,
+                    Endereco: {
+                        Logradouro: 'Rua das casas',
+                        Numero: 1985
+                    }
+                };
+
+
+                equal(DataBase.Count('Endereco'), 0, '');
+                equal(DataBase.Count('Cliente'), 7, '');
+
+                DataBase.InsertInto('Cliente', oCliente);
+
+                equal(DataBase.Count('Cliente'), 8, '');
+                equal(DataBase.Count('Endereco'), 1, '');
+
+
+
+                // VERIFICA SE OS DADOS INSERIDOS CONFEREM COM O OBJETO RETORNADO
+                var db = DataBase.RetrieveDataBase();
+                equal(db[0].Rows.length, 8, '');
+                var l = db[0].Rows.length - 1;
+
+
+                // Resgata o objeto 
+                var o = DataBase.SelectObject('Cliente', db[0].Rows[l].Id);
+
+                equal(o.Id, oCliente.Id, '');
+                equal(o.Nome, oCliente.Nome, '');
+                equal(o.Login, oCliente.Login.toLowerCase(), '');
+                equal(o.Senha, oCliente.Senha, '');
+                equal(o.CPF, oCliente.CPF, '');
+                equal(o.CNPJ, oCliente.CNPJ, '');
+                equal(JSON.stringify(o.DataNascimento), JSON.stringify(oCliente.DataNascimento), '');
+                equal(o.Idade, null, '');
+
+                equal(o.Endereco.Logradouro, oCliente.Endereco.Logradouro, '');
+                equal(o.Endereco.Numero, oCliente.Endereco.Numero, '');
+            });
+            
 
             // ]]>
         </script>

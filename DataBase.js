@@ -63,6 +63,7 @@ var DataBase = new (function () {
     *
     * @property {String}                        Name                                Nome da coluna.
     * @property {DataType}                      Type                                Tipo de dado aceito.
+    * @property {String}                        RefType = null                      Quando a coluna é uma referência a objetos de outras tabelas, aqui, RefType é o nome da tabela.
     * @property {Boolean}                       AllowSet = true                     Indica que o valor pode ser setado pelo usuário [senão é o próprio objeto quem define seu valor].
     * @property {Boolean}                       AllowNull = true                    Indica se permite que o valor seja nulo [null].
     * @property {Boolean}                       AllowEmpty = false                  Indica se permite que o valor seja vazio [''].
@@ -236,6 +237,25 @@ var DataBase = new (function () {
 
                 return v.toString();
             }
+        },
+        {
+            Name: 'Object',
+            Validate: function (v) { return (typeof (v) === 'object') ? true : false; },
+            TryParse: function (v) { return v; }
+        },
+        {
+            Name: 'Object[]',
+            Validate: function (v) {
+                var r = true;
+                for (var it in v) {
+                    if (typeof (v[it]) !== 'object') {
+                        r = false;
+                        break;
+                    }
+                }
+                return r;
+            },
+            TryParse: function (v) { return v; }
         }
     ];
 
@@ -339,6 +359,29 @@ var DataBase = new (function () {
         return (o !== undefined && o !== null && o !== '') ? true : false;
     };
 
+
+
+    /**
+    * Caso o valor a ser testado seja um valor não nulo/vazio, retorna-o, caso contrario, retorna o valor padrão
+    *
+    * @private
+    *
+    * @param {Object}           v               Valor a ser testado.
+    * @param {Object}           d               Valor padrão.
+    * @param {Boolean}          [u = false]     Indica se é para testar apenas valores "undefined".
+    *
+    * @return {Object}
+    */
+    var _checkDefaultValue = function (v, d, u) {
+        u = (u === undefined) ? false : u;
+
+        if (u) {
+            return (v === undefined) ? d : v;
+        }
+        else {
+            return (_isNotNullValue(v)) ? v : d;
+        }
+    };
 
 
     /**
@@ -520,6 +563,30 @@ var DataBase = new (function () {
 
 
     /**
+    * Resgata o Id do último item adicionado.
+    * 
+    * @function _retrieveLastId
+    *
+    * @private
+    *
+    * @param {String}                        parTable                            Nome da tabela de dados.
+    *
+    * @return {!Integer}
+    */
+    var _retrieveLastId = function (parTable) {
+        var r = null;
+
+        var tab = _selectTable(parTable);
+        if (tab.Rows.length > 0) {
+            r = tab.Rows[tab.Rows.length - 1]['Id'];
+        }
+
+        return r;
+    };
+
+
+
+    /**
     * Adiciona configurações de uma coluna de dados para uma tabela existente.
     * 
     * @function _alterTableSetColumn
@@ -529,6 +596,7 @@ var DataBase = new (function () {
     * @param {String}                        parTable                            Nome da tabela de dados.
     * @param {String}                        parName                             Nome da coluna.
     * @param {DataType}                      parType                             Tipo de dado aceito.
+    * @param {String}                        [parRefType = null]                 Nome da tabela de referência.
     * @param {Boolean}                       [parAllowSet = true]                Indica que o valor pode ser setado pelo usuário.
     * @param {Boolean}                       [parAllowNull = true]               Indica se permite que o valor seja nulo [null].
     * @param {Boolean}                       [parAllowEmpty = false]             Indica se permite que o valor seja vazio [''].
@@ -539,7 +607,7 @@ var DataBase = new (function () {
     *
     * @return {Boolean}
     */
-    var _alterTableSetColumn = function (parTable, parName, parType, parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parFormat) {
+    var _alterTableSetColumn = function (parTable, parName, parType, parRefType, parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parFormat) {
 
         var r = false;
 
@@ -565,18 +633,25 @@ var DataBase = new (function () {
 
 
                 if (Type != null) {
-                    parAllowSet = (parAllowSet !== undefined) ? parAllowSet : true;
-                    parAllowNull = (parAllowNull !== undefined) ? parAllowNull : true;
-                    parAllowEmpty = (parAllowEmpty !== undefined) ? parAllowEmpty : false;
-                    parUnique = (parUnique !== undefined) ? parUnique : false;
-                    parReadOnly = (parReadOnly !== undefined) ? parReadOnly : false;
-                    parDefault = (parDefault !== undefined) ? parDefault : null;
-                    parFormat = (parFormat !== undefined) ? parFormat : null;
+                    parRefType = _checkDefaultValue(parRefType, null, true);
+                    parAllowSet = _checkDefaultValue(parAllowSet, true, true);
+                    parAllowNull = _checkDefaultValue(parAllowNull, true, true);
+                    parAllowEmpty = _checkDefaultValue(parAllowEmpty, false, true);
+                    parUnique = _checkDefaultValue(parUnique, false, true);
+                    parReadOnly = _checkDefaultValue(parReadOnly, false, true);
+                    parDefault = _checkDefaultValue(parDefault, null, true);
+                    parFormat = _checkDefaultValue(parFormat, null, true);
+
+
+                    if (parType == 'Object[]' && !_isNotNullValue(parDefault)) {
+                        parDefault = [];
+                    }
 
 
                     tab.Columns.push({
                         Name: parName,
                         Type: Type,
+                        RefType: parRefType,
                         AllowSet: parAllowSet,
                         AllowNull: parAllowNull,
                         AllowEmpty: parAllowEmpty,
@@ -680,10 +755,10 @@ var DataBase = new (function () {
 
         if (!_isNotNullValue(filter)) { filter = model; }
         else {
-            filter['Where'] = (_isNotNullValue(filter['Where'])) ? filter['Where'] : model.Where;
-            filter['OrderBy'] = (_isNotNullValue(filter['OrderBy'])) ? filter['OrderBy'] : model.OrderBy;
-            filter['PageNumber'] = (_isNotNullValue(filter['PageNumber'])) ? filter['PageNumber'] : model.PageNumber;
-            filter['PageLength'] = (_isNotNullValue(filter['PageLength'])) ? filter['PageLength'] : model.PageLength;
+            filter['Where'] = _checkDefaultValue(filter['Where'], model.Where);
+            filter['OrderBy'] = _checkDefaultValue(filter['OrderBy'], model.OrderBy);
+            filter['PageNumber'] = _checkDefaultValue(filter['PageNumber'], model.PageNumber);
+            filter['PageLength'] = _checkDefaultValue(filter['PageLength'], model.PageLength);
         }
 
 
@@ -766,7 +841,7 @@ var DataBase = new (function () {
                     for (var it in parConfig) {
                         var c = parConfig[it];
 
-                        _alterTableSetColumn(parTable, c.Name, c.Type, c.AllowSet, c.AllowNull, c.AllowEmpty, c.Unique, c.ReadOnly, c.Default, c.Format);
+                        _alterTableSetColumn(parTable, c.Name, c.Type, c.RefType, c.AllowSet, c.AllowNull, c.AllowEmpty, c.Unique, c.ReadOnly, c.Default, c.Format);
                     }
 
                     r = true;
@@ -883,7 +958,52 @@ var DataBase = new (function () {
                             countOK++;
                         }
                         else {
-                            val = _checkColRules(val, cRule, tab);
+
+                            // Conforme a natureza da coluna de dados...
+                            switch (cRule.Type.Name) {
+                                case 'Object':
+                                    val = DataBase.SaveOrUpdate(cRule.RefType, val);
+                                    break;
+
+                                case 'Object[]':
+
+                                    if (typeof (val) !== '[object Array]') {
+                                        val = [];
+                                    }
+                                    else {
+                                        var nVal = [];
+                                        var isOK = true;
+
+                                        // Enquanto não houver erros, processa objetos filhos...
+                                        for (var it in val) {
+                                            if (isOK) {
+                                                var nO = DataBase.SaveOrUpdate(cRule.RefType, val[it]);
+
+                                                if (nO === null) { isOK = false; }
+                                                else { nVal.push(nO); }
+                                            }
+                                        }
+
+                                        // Havendo qualquer erro, remove todos os objetos adicionados
+                                        // e o insert como um todo falhará.
+                                        if (!isOK) {
+                                            nVal = undefined;
+                                            for (var it in nVal) {
+                                                DataBase.DeleteFrom(cRule.RefType, nVal[it]['Id']);
+                                            }
+                                        }
+
+                                        val = nVal;
+                                    }
+
+
+                                    break;
+
+                                default:
+                                    val = _checkColRules(val, cRule, tab);
+                                    break;
+                            }
+
 
                             // Efetua sets
                             if (val !== undefined) {
@@ -902,6 +1022,8 @@ var DataBase = new (function () {
                 if (countOK == tab.Columns.length) {
                     tab.Rows.push(newRow);
                     tab.NextId++;
+
+                    rowData['Id'] = newRow['Id'];
 
                     r = true;
                 }
@@ -962,7 +1084,53 @@ var DataBase = new (function () {
 
 
                             if (isSet) {
-                                val = _checkColRules(val, cRule, tab);
+
+                                // Conforme a natureza da coluna de dados...
+                                switch (cRule.Type.Name) {
+                                    case 'Object':
+                                        val = DataBase.SaveOrUpdate(cRule.RefType, val);
+                                        break;
+
+                                    case 'Object[]':
+
+                                        if (typeof (val) !== '[object Array]') {
+                                            val = [];
+                                        }
+                                        else {
+                                            var nVal = [];
+                                            var isOK = true;
+
+                                            // Enquanto não houver erros, processa objetos filhos...
+                                            for (var it in val) {
+                                                if (isOK) {
+                                                    var nO = DataBase.SaveOrUpdate(cRule.RefType, val[it]);
+
+                                                    if (nO === null) { isOK = false; }
+                                                    else { nVal.push(nO); }
+                                                }
+                                            }
+
+                                            // Havendo qualquer erro, remove todos os objetos adicionados
+                                            // e o insert como um todo falhará.
+                                            if (!isOK) {
+                                                nVal = undefined;
+                                                for (var it in nVal) {
+                                                    DataBase.DeleteFrom(cRule.RefType, nVal[it]['Id']);
+                                                }
+                                            }
+
+                                            val = nVal;
+                                        }
+
+
+                                        break;
+
+                                    default:
+                                        val = _checkColRules(val, cRule, tab);
+                                        break;
+                                }
+
+
 
                                 // Efetua sets
                                 if (val !== undefined) {
@@ -995,6 +1163,46 @@ var DataBase = new (function () {
             return r;
         },
 
+
+
+
+
+        /**
+        * Efetua a persistência ou a atualização de um objeto e retorna seu valor final caso
+        * o procedimento tenha ocorrido com sucesso.
+        * 
+        * @function SaveOrUpdate
+        *
+        * @memberof DataBase
+        *
+        * @param {String}                       parTable                        Nome da tabela de dados.
+        * @param {JSON}                         rowData                         Dados que serão adicionados.
+        *
+        * @return {!Object}
+        */
+        SaveOrUpdate: function (parTable, rowData) {
+            var o = null;
+
+            if (_isNotNullValue(rowData)) {
+                o = undefined;
+
+                // Se trata-se de um novo item, adiciona-o
+                if (rowData['Id'] === undefined) {
+
+                    if (DataBase.InsertInto(parTable, rowData)) {
+                        o = DataBase.SelectObject(parTable, _retrieveLastId(parTable));
+                    }
+                }
+                // Senão, atualiza o objeto.
+                else {
+                    if (DataBase.UpdateSet(parTable, rowData)) {
+                        o = DataBase.SelectObject(parTable, rowData['Id']);
+                    }
+                }
+            }
+
+            return o;
+        },
 
 
 
