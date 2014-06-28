@@ -714,81 +714,11 @@ var DataBase = new (function () {
 
             // Apenas se for uma nova coluna
             if (isNew) {
-                var Type = null;
-                var Length = null;
+                var nCol = _createDataTableColumn(parName, parType, parLength, parMin, parMax, parRefType,
+                                        parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parFormat);
 
-
-                for (var it in _dataTypes) {
-                    if (_dataTypes[it].Name == parType) {
-                        Type = _dataTypes[it];
-                    }
-                }
-
-
-
-                if (Type != null) {
-                    parLength = _checkDefaultValue(parLength, null, true);
-                    parMin = _checkDefaultValue(parMin, null, true);
-                    parMax = _checkDefaultValue(parMax, null, true);
-
-                    parRefType = _checkDefaultValue(parRefType, null, true);
-                    parAllowSet = _checkDefaultValue(parAllowSet, true, true);
-                    parAllowNull = _checkDefaultValue(parAllowNull, true, true);
-                    parAllowEmpty = _checkDefaultValue(parAllowEmpty, false, true);
-                    parUnique = _checkDefaultValue(parUnique, false, true);
-                    parReadOnly = _checkDefaultValue(parReadOnly, false, true);
-                    parDefault = _checkDefaultValue(parDefault, null, true);
-                    parFormat = _checkDefaultValue(parFormat, null, true);
-
-
-                    // Tratamentos especiais conforme o tipo...
-                    switch (Type.Name) {
-                        case 'Boolean':
-                        case 'Object':
-                        case 'Object[]':
-                            parLength = null;
-                            parMin = null;
-                            parMax = null;
-
-                            if (Type.Name == 'Object[]' && !_isNotNullValue(parDefault)) { parDefault = []; }
-
-                            break;
-
-                        case 'String':
-                            parMin = null;
-                            parMax = null;
-                            break;
-
-                        case 'Byte':
-                        case 'Short':
-                        case 'Integer':
-                        case 'Long':
-                        case 'Float':
-                        case 'Double':
-                            parLength = null;
-                            parMin = (parMin != null && parMin >= Type.Min) ? parMin : Type.Min;
-                            parMax = (parMax != null && parMax <= Type.Max) ? parMax : Type.Max;
-
-                            break;
-                    }
-
-
-                    tab.Columns.push({
-                        Name: parName,
-                        Type: Type,
-                        Length: parLength,
-                        Min: parMin,
-                        Max: parMax,
-                        RefType: parRefType,
-                        AllowSet: parAllowSet,
-                        AllowNull: parAllowNull,
-                        AllowEmpty: parAllowEmpty,
-                        Unique: parUnique,
-                        ReadOnly: parReadOnly,
-                        Default: parDefault,
-                        Format: parFormat
-                    });
-
+                if (nCol != null) {
+                    tab.Columns.push(nCol);
                     r = true;
                 }
             }
@@ -796,6 +726,112 @@ var DataBase = new (function () {
         }
 
         return r;
+    };
+
+
+
+    /**
+    * Cria um novo objeto "DataTableColumn".
+    * 
+    * @function _createDataTableColumn
+    *
+    * @private
+    *
+    * @param {String}                        parName                             Nome da coluna.
+    * @param {DataType}                      parType                             Tipo de dado aceito.
+    * @param {Integer}                       [parLength = null]                  Tamanho máximo para um campo do tipo String.
+    * @param {Integer}                       [parMin = null]                     Valor mínimo aceito para um campo numérico.
+    * @param {Integer}                       [parMax = null]                     Valor máximo aceito para um campo numérico.
+    * @param {String}                        [parRefType = null]                 Nome da tabela de referência.
+    * @param {Boolean}                       [parAllowSet = true]                Indica que o valor pode ser setado pelo usuário.
+    * @param {Boolean}                       [parAllowNull = true]               Indica se permite que o valor seja nulo [null].
+    * @param {Boolean}                       [parAllowEmpty = false]             Indica se permite que o valor seja vazio [''].
+    * @param {Boolean}                       [parUnique = false]                 Indica que o valor desta coluna não pode ser repetido.
+    * @param {Boolean}                       [parReadOnly = false]               Indica que o valor só será setado 1 vez.
+    * @param {String}                        [parDefault = null]                 Valor padrão para a propriedade.
+    * @param {Function}                      [parFormat = null]                  Método para formatação do valor [executado após validação].
+    *
+    * @return {!DataTableColumn}
+    */
+    var _createDataTableColumn = function (parName, parType, parLength, parMin, parMax, parRefType,
+                                        parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parFormat) {
+        var Type = null;
+
+
+        for (var it in _dataTypes) {
+            if (_dataTypes[it].Name == parType) {
+                Type = _dataTypes[it];
+            }
+        }
+
+
+
+        if (Type != null) {
+            parLength = _checkDefaultValue(parLength, null, true);
+            parMin = _checkDefaultValue(parMin, null, true);
+            parMax = _checkDefaultValue(parMax, null, true);
+
+            parRefType = _checkDefaultValue(parRefType, null, true);
+            parAllowSet = _checkDefaultValue(parAllowSet, true, true);
+            parAllowNull = _checkDefaultValue(parAllowNull, true, true);
+            parAllowEmpty = _checkDefaultValue(parAllowEmpty, false, true);
+            parUnique = _checkDefaultValue(parUnique, false, true);
+            parReadOnly = _checkDefaultValue(parReadOnly, false, true);
+            parDefault = _checkDefaultValue(parDefault, null, true);
+            parFormat = _checkDefaultValue(parFormat, null, true);
+
+
+            // Tratamentos especiais conforme o tipo...
+            switch (Type.Name) {
+                case 'Boolean':
+                case 'Object':
+                case 'Object[]':
+                    parLength = null;
+                    parMin = null;
+                    parMax = null;
+
+                    if (Type.Name == 'Object[]' && !_isNotNullValue(parDefault)) { parDefault = []; }
+
+                    break;
+
+                case 'String':
+                    parMin = null;
+                    parMax = null;
+                    break;
+
+                case 'Byte':
+                case 'Short':
+                case 'Integer':
+                case 'Long':
+                case 'Float':
+                case 'Double':
+                    parLength = null;
+                    parMin = (parMin != null && parMin >= Type.Min) ? parMin : Type.Min;
+                    parMax = (parMax != null && parMax <= Type.Max) ? parMax : Type.Max;
+
+                    break;
+            }
+
+
+            return {
+                Name: parName,
+                Type: Type,
+                Length: parLength,
+                Min: parMin,
+                Max: parMax,
+                RefType: parRefType,
+                AllowSet: parAllowSet,
+                AllowNull: parAllowNull,
+                AllowEmpty: parAllowEmpty,
+                Unique: parUnique,
+                ReadOnly: parReadOnly,
+                Default: parDefault,
+                Format: parFormat
+            };
+        }
+
+
+        return null;
     };
 
 
@@ -849,7 +885,7 @@ var DataBase = new (function () {
 
 
                     switch (cRule.Type.Name) {
-                        // Se for uma string, verifica tamanho da mesma. 
+                        // Se for uma string, verifica tamanho da mesma.          
                         case 'String':
                             if (cRule.Length != null && val.length > cRule.Length) {
                                 isOK = false;
@@ -857,7 +893,7 @@ var DataBase = new (function () {
 
                             break;
 
-                        // Se for um número, verifica se o valor informado está dentro do range. 
+                        // Se for um número, verifica se o valor informado está dentro do range.          
                         case 'Byte':
                         case 'Short':
                         case 'Integer':
@@ -995,23 +1031,53 @@ var DataBase = new (function () {
             // Apenas se a tabela ainda não existir e for corretamente criada...
             if (_selectTable(parTable) == null) {
                 if (_createTable(parTable)) {
+                    r = true;
 
-                    if (typeof (parConfig) === '[object Array]') { }
-                    else {
-                        for (var it in parConfig) {
-                            var c = parConfig[it];
+                    for (var it in parConfig) {
+                        var c = parConfig[it];
 
-                            _alterTableSetColumn(parTable, c.Name, c.Type, c.Length, c.Min, c.Max, c.RefType, c.AllowSet, c.AllowNull, c.AllowEmpty, c.Unique, c.ReadOnly, c.Default, c.Format);
-                        }
+                        r = _alterTableSetColumn(parTable, c.Name, c.Type, c.Length, c.Min, c.Max, c.RefType, c.AllowSet, c.AllowNull, c.AllowEmpty, c.Unique, c.ReadOnly, c.Default, c.Format);
+                        if (!r) { break; }
                     }
 
-                    r = true;
                 }
             }
 
             return r;
         },
 
+
+
+
+
+        /**
+        * Cria um novo objeto "DataTableColumn".
+        * 
+        * @function CreateDataTableColumn
+        *
+        * @memberof DataBase
+        *
+        * @param {String}                        parName                             Nome da coluna.
+        * @param {DataType}                      parType                             Tipo de dado aceito.
+        * @param {Integer}                       [parLength = null]                  Tamanho máximo para um campo do tipo String.
+        * @param {Integer}                       [parMin = null]                     Valor mínimo aceito para um campo numérico.
+        * @param {Integer}                       [parMax = null]                     Valor máximo aceito para um campo numérico.
+        * @param {String}                        [parRefType = null]                 Nome da tabela de referência.
+        * @param {Boolean}                       [parAllowSet = true]                Indica que o valor pode ser setado pelo usuário.
+        * @param {Boolean}                       [parAllowNull = true]               Indica se permite que o valor seja nulo [null].
+        * @param {Boolean}                       [parAllowEmpty = false]             Indica se permite que o valor seja vazio [''].
+        * @param {Boolean}                       [parUnique = false]                 Indica que o valor desta coluna não pode ser repetido.
+        * @param {Boolean}                       [parReadOnly = false]               Indica que o valor só será setado 1 vez.
+        * @param {String}                        [parDefault = null]                 Valor padrão para a propriedade.
+        * @param {Function}                      [parFormat = null]                  Método para formatação do valor [executado após validação].
+        *
+        * @return {!DataTableColumn}
+        */
+        CreateDataTableColumn: function (parName, parType, parLength, parMin, parMax, parRefType,
+                                            parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parFormat) {
+            return _createDataTableColumn(parName, parType, parLength, parMin, parMax, parRefType,
+                                            parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parFormat);
+        },
 
 
 

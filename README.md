@@ -25,6 +25,7 @@ mesmos.
 * `ResetDataBase`               : Reinicia o objeto eliminando totalmente as tabelas e seus dados.
 * `RetrieveDataBase`            : Retorna um objeto clone do banco de dados atual.
 * `CreateTable`                 : Gera um novo objeto simulando uma tabela.
+* `CreateDataTableColumn`       : Cria um novo objeto "DataTableColumn".
 * `Count`                       : Conta quantos registros existem em uma determinada tabela.
 * `HasObject`                   : Indica se o objeto existe ou não na tabela de dados indicada a partir de seu Id.
 * `InsertInto`                  : Insere uma nova linha de dados em uma tabela.
