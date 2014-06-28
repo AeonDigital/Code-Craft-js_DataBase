@@ -21,7 +21,6 @@
 
 
 
-
             var SetTestDataBase = function () {
                 var Endereco = [{
                     Name: 'Logradouro',
@@ -36,7 +35,7 @@
                 },
                 {
                     Name: 'Numero',
-                    Type: 'Integer',
+                    Type: 'Short',
                     AllowSet: true,
                     AllowNull: false,
                     AllowEmpty: false,
@@ -306,7 +305,7 @@
 
 
 
-            
+
             test('CreateTable', function () {
                 DataBase.ResetDataBase();
                 SetTestDataBase();
@@ -727,7 +726,7 @@
                 equal(o.Endereco.Logradouro, oCliente.Endereco.Logradouro, '');
                 equal(o.Endereco.Numero, oCliente.Endereco.Numero, '');
             });
-            
+
 
             // ]]>
         </script>

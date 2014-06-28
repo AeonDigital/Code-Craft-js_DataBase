@@ -63,6 +63,9 @@ var DataBase = new (function () {
     *
     * @property {String}                        Name                                Nome da coluna.
     * @property {DataType}                      Type                                Tipo de dado aceito.
+    * @property {Integer}                       Length = null                       Tamanho máximo de um campo do tipo String, Use "null" para um campo de tamanho ilimitado.
+    * @property {Integer}                       Min = null                          Menor valor numérico que o campo pode ter.
+    * @property {Integer}                       Max = null                          Maior valor numérico que o campo pode ter.
     * @property {String}                        RefType = null                      Quando a coluna é uma referência a objetos de outras tabelas, aqui, RefType é o nome da tabela.
     * @property {Boolean}                       AllowSet = true                     Indica que o valor pode ser setado pelo usuário [senão é o próprio objeto quem define seu valor].
     * @property {Boolean}                       AllowNull = true                    Indica se permite que o valor seja nulo [null].
@@ -168,36 +171,46 @@ var DataBase = new (function () {
             }
         },
         {
-            Name: 'Integer',
-            Validate: function (v) { return (typeof (v) === 'number' && (v % 1 === 0)) ? true : false; },
-            TryParse: function (v) {
-                if (typeof (v) === 'number' && (v % 1 === 0)) { return parseInt(v, 10); }
-                else if (typeof (v) === 'string') {
-
-                    // Se a string for um numeral válido...
-                    if (!isNaN(v) && parseFloat(v) === parseInt(v, 10)) {
-                        return parseInt(v, 10);
-                    }
-                }
-
-                return v;
-            }
+            Name: 'Byte',           // INTEGER 8 BITS
+            Validate: function (v) { return _isIntegerNumber(v); },
+            TryParse: function (v) { return _tryParseToInteger(v); },
+            Min: -128,
+            Max: 127
         },
         {
-            Name: 'Float',
-            Validate: function (v) { return (typeof (v) === 'number') ? true : false; },
-            TryParse: function (v) {
-                if (typeof (v) === 'number') { return parseFloat(v); }
-                else if (typeof (v) === 'string') {
-
-                    // Se a string for um numeral válido...
-                    if (!isNaN(v)) {
-                        return parseFloat(v);
-                    }
-                }
-
-                return v;
-            }
+            Name: 'Short',          // INTEGER 16 BITS
+            Validate: function (v) { return _isIntegerNumber(v); },
+            TryParse: function (v) { return _tryParseToInteger(v); },
+            Min: -32768,
+            Max: 32767
+        },
+        {
+            Name: 'Integer',        // INTEGER 32 BITS
+            Validate: function (v) { return _isIntegerNumber(v); },
+            TryParse: function (v) { return _tryParseToInteger(v); },
+            Min: -2147483648,
+            Max: 2147483647
+        },
+        {
+            Name: 'Long',           // INTEGER 64 BITS
+            Validate: function (v) { return _isIntegerNumber(v); },
+            TryParse: function (v) { return _tryParseToInteger(v); },
+            Min: -9223372036854775296, // -9223372036854775808
+            Max: 9223372036854775296   //  9223372036854775807
+        },
+        {
+            Name: 'Float',          // FLOAT 32 BITS
+            Validate: function (v) { return _isNumber(v); },
+            TryParse: function (v) { return _tryParseToFloat(v); },
+            Min: -2147483648,
+            Max: 2147483647
+        },
+        {
+            Name: 'Double',         // FLOAT 64 BITS
+            Validate: function (v) { return _isNumber(v); },
+            TryParse: function (v) { return _tryParseToFloat(v); },
+            Min: -9223372036854775296, // -9223372036854775808
+            Max: 9223372036854775296   //  9223372036854775807
         },
         {
             Name: 'Date',
@@ -279,8 +292,82 @@ var DataBase = new (function () {
 
 
     /*
-    * MÉTODOS PRIVADOS
+    * MÉTODOS AUXILIARES PRIVADOS
     */
+
+
+    /**
+    * Verifica se o valor informado é um número.
+    *
+    * @private
+    *
+    * @param {Object}           v           Valor que será testado.
+    *
+    * @return {Boolean}
+    */
+    var _isNumber = function (v) {
+        return (typeof (v) === 'number') ? true : false;
+    };
+
+
+    /**
+    * Verifica se o valor informado é um número inteiro.
+    *
+    * @private
+    *
+    * @param {Object}           v           Valor que será testado.
+    *
+    * @return {Boolean}
+    */
+    var _isIntegerNumber = function (v) {
+        return (typeof (v) === 'number' && (v % 1 === 0)) ? true : false;
+    };
+
+
+    /**
+    * Tenta converter o objeto informado em um numeral inteiro.
+    *
+    * @private
+    *
+    * @param {Object}           v           Valor que será convertido.
+    *
+    * @return {Number}
+    */
+    var _tryParseToInteger = function (v) {
+        if (typeof (v) === 'number' && (v % 1 === 0)) { return parseInt(v, 10); }
+        else if (typeof (v) === 'string') {
+
+            // Se a string for um numeral válido...
+            if (!isNaN(v) && parseFloat(v) === parseInt(v, 10)) {
+                return parseInt(v, 10);
+            }
+        }
+
+        return v;
+    };
+
+
+    /**
+    * Tenta converter o objeto informado em um numeral do tipo "float".
+    *
+    * @private
+    *
+    * @param {Object}           v           Valor que será convertido.
+    *
+    * @return {Number}
+    */
+    var _tryParseToFloat = function (v) {
+        if (typeof (v) === 'number') { return parseFloat(v); }
+        else if (typeof (v) === 'string') {
+
+            // Se a string for um numeral válido...
+            if (!isNaN(v)) {
+                return parseFloat(v);
+            }
+        }
+
+        return v;
+    };
 
 
     /**
@@ -529,7 +616,8 @@ var DataBase = new (function () {
             NextId: 1
         });
 
-        _alterTableSetColumn(parTable, 'Id', 'Integer', false, false, false, true, true, null, null);
+
+        _alterTableSetColumn(parTable, 'Id', 'Integer', null, null, null, null, false, false, false, true, true, null, null);
         return true;
 
     };
@@ -596,6 +684,9 @@ var DataBase = new (function () {
     * @param {String}                        parTable                            Nome da tabela de dados.
     * @param {String}                        parName                             Nome da coluna.
     * @param {DataType}                      parType                             Tipo de dado aceito.
+    * @param {Integer}                       [parLength = null]                  Tamanho máximo para um campo do tipo String.
+    * @param {Integer}                       [parMin = null]                     Valor mínimo aceito para um campo numérico.
+    * @param {Integer}                       [parMax = null]                     Valor máximo aceito para um campo numérico.
     * @param {String}                        [parRefType = null]                 Nome da tabela de referência.
     * @param {Boolean}                       [parAllowSet = true]                Indica que o valor pode ser setado pelo usuário.
     * @param {Boolean}                       [parAllowNull = true]               Indica se permite que o valor seja nulo [null].
@@ -607,7 +698,8 @@ var DataBase = new (function () {
     *
     * @return {Boolean}
     */
-    var _alterTableSetColumn = function (parTable, parName, parType, parRefType, parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parFormat) {
+    var _alterTableSetColumn = function (parTable, parName, parType, parLength, parMin, parMax, parRefType,
+                                        parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parFormat) {
 
         var r = false;
 
@@ -623,6 +715,8 @@ var DataBase = new (function () {
             // Apenas se for uma nova coluna
             if (isNew) {
                 var Type = null;
+                var Length = null;
+
 
                 for (var it in _dataTypes) {
                     if (_dataTypes[it].Name == parType) {
@@ -633,6 +727,10 @@ var DataBase = new (function () {
 
 
                 if (Type != null) {
+                    parLength = _checkDefaultValue(parLength, null, true);
+                    parMin = _checkDefaultValue(parMin, null, true);
+                    parMax = _checkDefaultValue(parMax, null, true);
+
                     parRefType = _checkDefaultValue(parRefType, null, true);
                     parAllowSet = _checkDefaultValue(parAllowSet, true, true);
                     parAllowNull = _checkDefaultValue(parAllowNull, true, true);
@@ -643,14 +741,44 @@ var DataBase = new (function () {
                     parFormat = _checkDefaultValue(parFormat, null, true);
 
 
-                    if (parType == 'Object[]' && !_isNotNullValue(parDefault)) {
-                        parDefault = [];
+                    // Tratamentos especiais conforme o tipo...
+                    switch (Type.Name) {
+                        case 'Boolean':
+                        case 'Object':
+                        case 'Object[]':
+                            parLength = null;
+                            parMin = null;
+                            parMax = null;
+
+                            if (Type.Name == 'Object[]' && !_isNotNullValue(parDefault)) { parDefault = []; }
+
+                            break;
+
+                        case 'String':
+                            parMin = null;
+                            parMax = null;
+                            break;
+
+                        case 'Byte':
+                        case 'Short':
+                        case 'Integer':
+                        case 'Long':
+                        case 'Float':
+                        case 'Double':
+                            parLength = null;
+                            parMin = (parMin != null && parMin >= Type.Min) ? parMin : Type.Min;
+                            parMax = (parMax != null && parMax <= Type.Max) ? parMax : Type.Max;
+
+                            break;
                     }
 
 
                     tab.Columns.push({
                         Name: parName,
                         Type: Type,
+                        Length: parLength,
+                        Min: parMin,
+                        Max: parMax,
                         RefType: parRefType,
                         AllowSet: parAllowSet,
                         AllowNull: parAllowNull,
@@ -696,6 +824,11 @@ var DataBase = new (function () {
             // Corrige valores nulos para quando há um valor padrão.
             if (val == undefined || val == null) {
                 val = cRule.Default;
+
+                // Verifica tratamento especial para formato Date
+                if (cRule.Type.Name === 'Date' && cRule.Default === 'new') {
+                    val = new Date();
+                }
             }
 
 
@@ -705,7 +838,6 @@ var DataBase = new (function () {
             }
             // Senão, se há um valor setado...
             else {
-
                 // Verifica o formato do valor indicado
                 val = cRule.Type.TryParse(val);
 
@@ -716,12 +848,38 @@ var DataBase = new (function () {
                     val = (cRule.Format != null) ? cRule.Format(val) : val;
 
 
+                    switch (cRule.Type.Name) {
+                        // Se for uma string, verifica tamanho da mesma. 
+                        case 'String':
+                            if (cRule.Length != null && val.length > cRule.Length) {
+                                isOK = false;
+                            }
+
+                            break;
+
+                        // Se for um número, verifica se o valor informado está dentro do range. 
+                        case 'Byte':
+                        case 'Short':
+                        case 'Integer':
+                        case 'Long':
+                        case 'Float':
+                        case 'Double':
+                            if (val < cRule.Type.Min || val > cRule.Type.Max) {
+                                isOK = false;
+                            }
+
+                            break;
+                    }
+
+
+
                     // Verifica regra de valor único
-                    if (cRule.Unique) {
+                    if (isOK && cRule.Unique) {
                         for (var r in tab.Rows) {
                             if (tab.Rows[r][cRule.Name] == val) { isOK = false; break; }
                         }
                     }
+
                 }
 
             }
@@ -838,10 +996,13 @@ var DataBase = new (function () {
             if (_selectTable(parTable) == null) {
                 if (_createTable(parTable)) {
 
-                    for (var it in parConfig) {
-                        var c = parConfig[it];
+                    if (typeof (parConfig) === '[object Array]') { }
+                    else {
+                        for (var it in parConfig) {
+                            var c = parConfig[it];
 
-                        _alterTableSetColumn(parTable, c.Name, c.Type, c.RefType, c.AllowSet, c.AllowNull, c.AllowEmpty, c.Unique, c.ReadOnly, c.Default, c.Format);
+                            _alterTableSetColumn(parTable, c.Name, c.Type, c.Length, c.Min, c.Max, c.RefType, c.AllowSet, c.AllowNull, c.AllowEmpty, c.Unique, c.ReadOnly, c.Default, c.Format);
+                        }
                     }
 
                     r = true;
