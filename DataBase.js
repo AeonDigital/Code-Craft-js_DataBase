@@ -617,9 +617,13 @@ var DataBase = new (function () {
         });
 
 
-        _alterTableSetColumn(parTable, 'Id', 'Integer', null, null, null, null, false, false, false, true, true, null, null);
-        return true;
+        var cId = _createDataTableColumn('Id', 'Integer', null, null, null, null, false, false, false, true, true, null, null);
+        if (cId != null) {
+            _alterTableSetColumn(parTable, cId);
+            return true;
+        }
 
+        return false;
     };
 
 
@@ -682,24 +686,11 @@ var DataBase = new (function () {
     * @private
     *
     * @param {String}                        parTable                            Nome da tabela de dados.
-    * @param {String}                        parName                             Nome da coluna.
-    * @param {DataType}                      parType                             Tipo de dado aceito.
-    * @param {Integer}                       [parLength = null]                  Tamanho máximo para um campo do tipo String.
-    * @param {Integer}                       [parMin = null]                     Valor mínimo aceito para um campo numérico.
-    * @param {Integer}                       [parMax = null]                     Valor máximo aceito para um campo numérico.
-    * @param {String}                        [parRefType = null]                 Nome da tabela de referência.
-    * @param {Boolean}                       [parAllowSet = true]                Indica que o valor pode ser setado pelo usuário.
-    * @param {Boolean}                       [parAllowNull = true]               Indica se permite que o valor seja nulo [null].
-    * @param {Boolean}                       [parAllowEmpty = false]             Indica se permite que o valor seja vazio [''].
-    * @param {Boolean}                       [parUnique = false]                 Indica que o valor desta coluna não pode ser repetido.
-    * @param {Boolean}                       [parReadOnly = false]               Indica que o valor só será setado 1 vez.
-    * @param {String}                        [parDefault = null]                 Valor padrão para a propriedade.
-    * @param {Function}                      [parFormat = null]                  Método para formatação do valor [executado após validação].
+    * @param {DataTableColumn}               parNewColumn                        Objeto de configuração da nova coluna de dados.
     *
     * @return {Boolean}
     */
-    var _alterTableSetColumn = function (parTable, parName, parType, parLength, parMin, parMax, parRefType,
-                                        parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parFormat) {
+    var _alterTableSetColumn = function (parTable, parNewColumn) {
 
         var r = false;
 
@@ -708,19 +699,14 @@ var DataBase = new (function () {
             // Verifica se o nome da coluna não está repetido
             var isNew = true;
             for (var c in tab.Columns) {
-                if (tab.Columns[c].Name == parName) { isNew = false; }
+                if (tab.Columns[c].Name == parNewColumn.Name) { isNew = false; }
             }
 
 
             // Apenas se for uma nova coluna
             if (isNew) {
-                var nCol = _createDataTableColumn(parName, parType, parLength, parMin, parMax, parRefType,
-                                        parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parFormat);
-
-                if (nCol != null) {
-                    tab.Columns.push(nCol);
-                    r = true;
-                }
+                tab.Columns.push(parNewColumn);
+                r = true;
             }
 
         }
@@ -885,7 +871,7 @@ var DataBase = new (function () {
 
 
                     switch (cRule.Type.Name) {
-                        // Se for uma string, verifica tamanho da mesma.          
+                        // Se for uma string, verifica tamanho da mesma.              
                         case 'String':
                             if (cRule.Length != null && val.length > cRule.Length) {
                                 isOK = false;
@@ -893,7 +879,7 @@ var DataBase = new (function () {
 
                             break;
 
-                        // Se for um número, verifica se o valor informado está dentro do range.          
+                        // Se for um número, verifica se o valor informado está dentro do range.              
                         case 'Byte':
                         case 'Short':
                         case 'Integer':
@@ -1035,9 +1021,17 @@ var DataBase = new (function () {
 
                     for (var it in parConfig) {
                         var c = parConfig[it];
+                        var nCol = _createDataTableColumn(c.Name, c.Type, c.Length, c.Min, c.Max, c.RefType,
+                                                          c.AllowSet, c.AllowNull, c.AllowEmpty, c.Unique, c.ReadOnly, c.Default, c.Format);
 
-                        r = _alterTableSetColumn(parTable, c.Name, c.Type, c.Length, c.Min, c.Max, c.RefType, c.AllowSet, c.AllowNull, c.AllowEmpty, c.Unique, c.ReadOnly, c.Default, c.Format);
-                        if (!r) { break; }
+                        if (nCol != null) {
+                            r = _alterTableSetColumn(parTable, nCol);
+                            if (!r) { break; }
+                        }
+                        else {
+                            break;
+                        }
+
                     }
 
                 }
