@@ -14,8 +14,10 @@
 
 
 
-
-
+// --------------------
+// Caso não exista, inicia objeto CodeCraft
+var CodeCraft = (CodeCraft || function () { });
+if(typeof(CodeCraft) === 'function') { CodeCraft = new CodeCraft(); };
 
 
 
@@ -27,14 +29,14 @@
 *
 * @class DataBase
 *
-* @global
+* @memberof CodeCraft
 *
 * @static
 *
 * @type {Class}
 */
-var DataBase = new (function () {
-
+CodeCraft.DataBase = new (function () {
+    var _bt = CodeCraft.BasicTools;
 
 
 
@@ -172,43 +174,43 @@ var DataBase = new (function () {
         },
         {
             Name: 'Byte',           // INTEGER 8 BITS
-            Validate: function (v) { return _isIntegerNumber(v); },
-            TryParse: function (v) { return _tryParseToInteger(v); },
+            Validate: function (v) { return _bt.IsInteger(v); },
+            TryParse: function (v) { return _bt.TryParse.ToInteger(v); },
             Min: -128,
             Max: 127
         },
         {
             Name: 'Short',          // INTEGER 16 BITS
-            Validate: function (v) { return _isIntegerNumber(v); },
-            TryParse: function (v) { return _tryParseToInteger(v); },
+            Validate: function (v) { return _bt.IsInteger(v); },
+            TryParse: function (v) { return _bt.TryParse.ToInteger(v); },
             Min: -32768,
             Max: 32767
         },
         {
             Name: 'Integer',        // INTEGER 32 BITS
-            Validate: function (v) { return _isIntegerNumber(v); },
-            TryParse: function (v) { return _tryParseToInteger(v); },
+            Validate: function (v) { return _bt.IsInteger(v); },
+            TryParse: function (v) { return _bt.TryParse.ToInteger(v); },
             Min: -2147483648,
             Max: 2147483647
         },
         {
             Name: 'Long',           // INTEGER 64 BITS
-            Validate: function (v) { return _isIntegerNumber(v); },
-            TryParse: function (v) { return _tryParseToInteger(v); },
+            Validate: function (v) { return _bt.IsInteger(v); },
+            TryParse: function (v) { return _bt.TryParse.ToInteger(v); },
             Min: -9223372036854775296, // -9223372036854775808
             Max: 9223372036854775296   //  9223372036854775807
         },
         {
             Name: 'Float',          // FLOAT 32 BITS
-            Validate: function (v) { return _isNumber(v); },
-            TryParse: function (v) { return _tryParseToFloat(v); },
+            Validate: function (v) { return _bt.IsNumber(v); },
+            TryParse: function (v) { return _bt.TryParse.ToFloat(v); },
             Min: -2147483648,
             Max: 2147483647
         },
         {
             Name: 'Double',         // FLOAT 64 BITS
             Validate: function (v) { return _isNumber(v); },
-            TryParse: function (v) { return _tryParseToFloat(v); },
+            TryParse: function (v) { return _bt.TryParse.ToFloat(v); },
             Min: -9223372036854775296, // -9223372036854775808
             Max: 9223372036854775296   //  9223372036854775807
         },
@@ -271,305 +273,6 @@ var DataBase = new (function () {
             TryParse: function (v) { return v; }
         }
     ];
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /*
-    * MÉTODOS AUXILIARES PRIVADOS
-    */
-
-
-    /**
-    * Verifica se o valor informado é um número.
-    *
-    * @private
-    *
-    * @param {Object}           v           Valor que será testado.
-    *
-    * @return {Boolean}
-    */
-    var _isNumber = function (v) {
-        return (typeof (v) === 'number') ? true : false;
-    };
-
-
-    /**
-    * Verifica se o valor informado é um número inteiro.
-    *
-    * @private
-    *
-    * @param {Object}           v           Valor que será testado.
-    *
-    * @return {Boolean}
-    */
-    var _isIntegerNumber = function (v) {
-        return (typeof (v) === 'number' && (v % 1 === 0)) ? true : false;
-    };
-
-
-    /**
-    * Tenta converter o objeto informado em um numeral inteiro.
-    *
-    * @private
-    *
-    * @param {Object}           v           Valor que será convertido.
-    *
-    * @return {Number}
-    */
-    var _tryParseToInteger = function (v) {
-        if (typeof (v) === 'number' && (v % 1 === 0)) { return parseInt(v, 10); }
-        else if (typeof (v) === 'string') {
-
-            // Se a string for um numeral válido...
-            if (!isNaN(v) && parseFloat(v) === parseInt(v, 10)) {
-                return parseInt(v, 10);
-            }
-        }
-
-        return v;
-    };
-
-
-    /**
-    * Tenta converter o objeto informado em um numeral do tipo "float".
-    *
-    * @private
-    *
-    * @param {Object}           v           Valor que será convertido.
-    *
-    * @return {Number}
-    */
-    var _tryParseToFloat = function (v) {
-        if (typeof (v) === 'number') { return parseFloat(v); }
-        else if (typeof (v) === 'string') {
-
-            // Se a string for um numeral válido...
-            if (!isNaN(v)) {
-                return parseFloat(v);
-            }
-        }
-
-        return v;
-    };
-
-
-    /**
-    * Remove espaços em branco no inicio e no final da string.
-    *
-    * @private
-    *
-    * @param {String}           s           String que será ajustada.
-    *
-    * @return {String}
-    */
-    var _trim = function (s) {
-        return s.replace(/^\s+|\s+$/g, '');
-    };
-
-
-
-    /**
-    * Substitui toda ocorrência de determinada string por uma outra definida.
-    *
-    * @private
-    *
-    * @param {String}                           s                                       String que será ajustada.
-    * @param {String}                           old                                     String que será substituída.
-    * @param {String}                           neu                                     String que será adicionada no lugar de "sold".
-    *
-    * @return {String}
-    */
-    var _replaceAll = function (s, old, neu) {
-        var sR = s;
-        while (sR.indexOf(old) != -1) { sR = sR.replace(old, neu); }
-        return sR;
-    };
-
-
-
-    /**
-    * Converte a string passada para um objeto Date.
-    * O formato da string passada deve ser YYYY.MM.DD
-    *
-    * @private
-    *
-    * @param {String}                           s                                       String que será convertida.
-    *
-    * @return {Date}
-    */
-    var _toDate = function (s) {
-        s = _replaceAll(s, '/', '-');
-        s = _replaceAll(s, '.', '-');
-        s = s.split('-');
-
-        if (s.length == 3) {
-            var y = parseInt(s[0]);
-            var m = parseInt(s[1]) - 1;
-            var d = parseInt(s[2]);
-
-            return new Date(y, m, d);
-        }
-        else {
-            return null;
-        }
-    };
-
-
-
-    /**
-    * Verifica se o valor informado é qualquer um diferente de undefined, null ou '' .
-    *
-    * @private
-    *
-    * @param {Object}           o           Objeto.
-    *
-    * @return {Boolean}
-    */
-    var _isNotNullValue = function (o) {
-        return (o !== undefined && o !== null && o !== '') ? true : false;
-    };
-
-
-
-    /**
-    * Caso o valor a ser testado seja um valor não nulo/vazio, retorna-o, caso contrario, retorna o valor padrão
-    *
-    * @private
-    *
-    * @param {Object}           v               Valor a ser testado.
-    * @param {Object}           d               Valor padrão.
-    * @param {Boolean}          [u = false]     Indica se é para testar apenas valores "undefined".
-    *
-    * @return {Object}
-    */
-    var _checkDefaultValue = function (v, d, u) {
-        u = (u === undefined) ? false : u;
-
-        if (u) {
-            return (v === undefined) ? d : v;
-        }
-        else {
-            return (_isNotNullValue(v)) ? v : d;
-        }
-    };
-
-
-    /**
-    * Clona um objeto.
-    * 
-    * @function CloneObject
-    *
-    * @global
-    *
-    * @param {Object}           o           Objeto.
-    *
-    * @return {Object}
-    */
-    var _cloneObject = function (o) {
-
-        if (o === null || o == undefined) { return o; }
-        else if (typeof (o) === 'object') {
-            var t = Object.prototype.toString.call(o);
-
-            if (t === '[object Date]') {
-                return new Date(o.getTime());
-            }
-            else if (t === '[object Array]') {
-                var c = [];
-                for (var i in o) { c[i] = _cloneObject(o[i]); }
-                return c;
-            }
-            else {
-                var c = {};
-
-                for (var i in o) {
-                    if (typeof (o[i]) === 'object') { c[i] = _cloneObject(o[i]); }
-                    else { c[i] = o[i]; }
-                }
-
-                return c;
-            }
-        }
-        else {
-            return o;
-        }
-
-    };
-
-
-
-    /**
-    * Permite ordenar um objeto a partir da indicação de uma de suas propriedades.
-    * O uso deste método se dá no escopo da ordenação de um array.
-    * ex : oArray.sort(_dynamicSort('PropName', 'Asc'));
-    * 
-    * @function _dynamicSort
-    *
-    * @global
-    *
-    * @param {String}           pn          Nome da propriedade que será usada como indice.
-    * @param {String}           so          Forma da ordenação [asc | desc].
-    * @param {String}           tp          Tipo do dado [Integer | Float | Date | String].
-    *
-    * @return {Function}
-    */
-    var _dynamicSort = function (pn, so, tp) {
-        var asc = (so === 'asc');
-
-        var _sort = function (a, b) {
-            var aV = a[pn];
-            var bV = b[pn];
-
-            switch (tp) {
-                case 'Integer':
-                case 'Float':
-                case 'Date':
-                    if (aV == null) {
-                        if (tp == 'Date') { aV = new Date(-8640000000000000); }
-                        else { aV = Number.MIN_VALUE; }
-                    }
-                    if (bV == null) {
-                        if (tp == 'Date') { bV = new Date(-8640000000000000); }
-                        else { bV = Number.MIN_VALUE; }
-                    }
-
-
-                    if (asc) { return aV - bV; }
-                    else { return bV - aV; }
-
-                    break;
-
-                case 'String':
-                    aV = (aV == null) ? '' : aV.toLowerCase();
-                    bV = (bV == null) ? '' : bV.toLowerCase();
-
-                    var r = (aV < bV) ? -1 : (aV > bV) ? 1 : 0;
-
-                    return (asc) ? r : r * -1;
-                    break;
-            }
-        };
-
-        return _sort;
-    };
-
 
 
 
@@ -753,18 +456,18 @@ var DataBase = new (function () {
 
 
         if (Type != null) {
-            parLength = _checkDefaultValue(parLength, null, true);
-            parMin = _checkDefaultValue(parMin, null, true);
-            parMax = _checkDefaultValue(parMax, null, true);
+            parLength = _bt.InitiSet(parLength, null, true);
+            parMin = _bt.InitiSet(parMin, null, true);
+            parMax = _bt.InitiSet(parMax, null, true);
 
-            parRefType = _checkDefaultValue(parRefType, null, true);
-            parAllowSet = _checkDefaultValue(parAllowSet, true, true);
-            parAllowNull = _checkDefaultValue(parAllowNull, true, true);
-            parAllowEmpty = _checkDefaultValue(parAllowEmpty, false, true);
-            parUnique = _checkDefaultValue(parUnique, false, true);
-            parReadOnly = _checkDefaultValue(parReadOnly, false, true);
-            parDefault = _checkDefaultValue(parDefault, null, true);
-            parFormat = _checkDefaultValue(parFormat, null, true);
+            parRefType = _bt.InitiSet(parRefType, null, true);
+            parAllowSet = _bt.InitiSet(parAllowSet, true, true);
+            parAllowNull = _bt.InitiSet(parAllowNull, true, true);
+            parAllowEmpty = _bt.InitiSet(parAllowEmpty, false, true);
+            parUnique = _bt.InitiSet(parUnique, false, true);
+            parReadOnly = _bt.InitiSet(parReadOnly, false, true);
+            parDefault = _bt.InitiSet(parDefault, null, true);
+            parFormat = _bt.InitiSet(parFormat, null, true);
 
 
             // Tratamentos especiais conforme o tipo...
@@ -776,7 +479,7 @@ var DataBase = new (function () {
                     parMin = null;
                     parMax = null;
 
-                    if (Type.Name == 'Object[]' && !_isNotNullValue(parDefault)) { parDefault = []; }
+                    if (Type.Name == 'Object[]' && !_bt.IsNotNullValue(parDefault)) { parDefault = []; }
 
                     break;
 
@@ -855,7 +558,7 @@ var DataBase = new (function () {
 
 
             // Se for um valor considerado vazio, nulo ou indefinido
-            if (!_isNotNullValue(val)) {
+            if (!_bt.IsNotNullValue(val)) {
                 if ((val == null && cRule.AllowNull == false) || (val == '' && cRule.AllowEmpty == false)) { isOK = false; }
             }
             // Senão, se há um valor setado...
@@ -871,7 +574,7 @@ var DataBase = new (function () {
 
 
                     switch (cRule.Type.Name) {
-                        // Se for uma string, verifica tamanho da mesma.              
+                        // Se for uma string, verifica tamanho da mesma.                
                         case 'String':
                             if (cRule.Length != null && val.length > cRule.Length) {
                                 isOK = false;
@@ -879,7 +582,7 @@ var DataBase = new (function () {
 
                             break;
 
-                        // Se for um número, verifica se o valor informado está dentro do range.              
+                        // Se for um número, verifica se o valor informado está dentro do range.                
                         case 'Byte':
                         case 'Short':
                         case 'Integer':
@@ -933,12 +636,12 @@ var DataBase = new (function () {
         };
 
 
-        if (!_isNotNullValue(filter)) { filter = model; }
+        if (!_bt.IsNotNullValue(filter)) { filter = model; }
         else {
-            filter['Where'] = _checkDefaultValue(filter['Where'], model.Where);
-            filter['OrderBy'] = _checkDefaultValue(filter['OrderBy'], model.OrderBy);
-            filter['PageNumber'] = _checkDefaultValue(filter['PageNumber'], model.PageNumber);
-            filter['PageLength'] = _checkDefaultValue(filter['PageLength'], model.PageLength);
+            filter['Where'] = _bt.InitiSet(filter['Where'], model.Where);
+            filter['OrderBy'] = _bt.InitiSet(filter['OrderBy'], model.OrderBy);
+            filter['PageNumber'] = _bt.InitiSet(filter['PageNumber'], model.PageNumber);
+            filter['PageLength'] = _bt.InitiSet(filter['PageLength'], model.PageLength);
         }
 
 
@@ -991,7 +694,7 @@ var DataBase = new (function () {
         * @return {DataTable[]}
         */
         RetrieveDataBase: function () {
-            return _cloneObject(_dataTables);
+            return _bt.CloneObject(_dataTables);
         },
 
 
@@ -1151,7 +854,6 @@ var DataBase = new (function () {
         * @return {Boolean}
         */
         InsertInto: function (parTable, rowData) {
-
             var r = false;
 
             // Se a tabela existir
@@ -1165,7 +867,7 @@ var DataBase = new (function () {
                 // Para cada coluna de dados configurada na tabela atual...
                 for (var tC in tab.Columns) {
                     var cRule = tab.Columns[tC];
-                    var val = _cloneObject(rowData[cRule.Name]);
+                    var val = _bt.CloneObject(rowData[cRule.Name]);
 
 
                     // Caso seja a coluna Id
@@ -1179,11 +881,11 @@ var DataBase = new (function () {
                             countOK++;
                         }
                         else {
-
+                            
                             // Conforme a natureza da coluna de dados...
                             switch (cRule.Type.Name) {
                                 case 'Object':
-                                    val = DataBase.SaveOrUpdate(cRule.RefType, val);
+                                    val = CodeCraft.DataBase.SaveOrUpdate(cRule.RefType, val);
                                     break;
 
                                 case 'Object[]':
@@ -1198,7 +900,7 @@ var DataBase = new (function () {
                                         // Enquanto não houver erros, processa objetos filhos...
                                         for (var it in val) {
                                             if (isOK) {
-                                                var nO = DataBase.SaveOrUpdate(cRule.RefType, val[it]);
+                                                var nO = CodeCraft.DataBase.SaveOrUpdate(cRule.RefType, val[it]);
 
                                                 if (nO === null) { isOK = false; }
                                                 else { nVal.push(nO); }
@@ -1210,7 +912,7 @@ var DataBase = new (function () {
                                         if (!isOK) {
                                             nVal = undefined;
                                             for (var it in nVal) {
-                                                DataBase.DeleteFrom(cRule.RefType, nVal[it]['Id']);
+                                                CodeCraft.DataBase.DeleteFrom(cRule.RefType, nVal[it]['Id']);
                                             }
                                         }
 
@@ -1244,6 +946,7 @@ var DataBase = new (function () {
                     tab.Rows.push(newRow);
                     tab.NextId++;
 
+                    
                     rowData['Id'] = newRow['Id'];
 
                     r = true;
@@ -1309,7 +1012,7 @@ var DataBase = new (function () {
                                 // Conforme a natureza da coluna de dados...
                                 switch (cRule.Type.Name) {
                                     case 'Object':
-                                        val = DataBase.SaveOrUpdate(cRule.RefType, val);
+                                        val = CodeCraft.DataBase.SaveOrUpdate(cRule.RefType, val);
                                         break;
 
                                     case 'Object[]':
@@ -1324,7 +1027,7 @@ var DataBase = new (function () {
                                             // Enquanto não houver erros, processa objetos filhos...
                                             for (var it in val) {
                                                 if (isOK) {
-                                                    var nO = DataBase.SaveOrUpdate(cRule.RefType, val[it]);
+                                                    var nO = CodeCraft.DataBase.SaveOrUpdate(cRule.RefType, val[it]);
 
                                                     if (nO === null) { isOK = false; }
                                                     else { nVal.push(nO); }
@@ -1336,7 +1039,7 @@ var DataBase = new (function () {
                                             if (!isOK) {
                                                 nVal = undefined;
                                                 for (var it in nVal) {
-                                                    DataBase.DeleteFrom(cRule.RefType, nVal[it]['Id']);
+                                                    CodeCraft.DataBase.DeleteFrom(cRule.RefType, nVal[it]['Id']);
                                                 }
                                             }
 
@@ -1404,20 +1107,20 @@ var DataBase = new (function () {
         SaveOrUpdate: function (parTable, rowData) {
             var o = null;
 
-            if (_isNotNullValue(rowData)) {
+            if (_bt.IsNotNullValue(rowData)) {
                 o = undefined;
 
                 // Se trata-se de um novo item, adiciona-o
                 if (rowData['Id'] === undefined) {
 
-                    if (DataBase.InsertInto(parTable, rowData)) {
-                        o = DataBase.SelectObject(parTable, _retrieveLastId(parTable));
+                    if (CodeCraft.DataBase.InsertInto(parTable, rowData)) {
+                        o = CodeCraft.DataBase.SelectObject(parTable, _retrieveLastId(parTable));
                     }
                 }
                 // Senão, atualiza o objeto.
                 else {
-                    if (DataBase.UpdateSet(parTable, rowData)) {
-                        o = DataBase.SelectObject(parTable, rowData['Id']);
+                    if (CodeCraft.DataBase.UpdateSet(parTable, rowData)) {
+                        o = CodeCraft.DataBase.SelectObject(parTable, rowData['Id']);
                     }
                 }
             }
@@ -1497,7 +1200,7 @@ var DataBase = new (function () {
 
 
             if (o != null) {
-                r = _cloneObject(o);
+                r = _bt.CloneObject(o);
             }
 
             return r;
@@ -1535,7 +1238,7 @@ var DataBase = new (function () {
             if (tab != null) {
                 // Resgata referência das tabelas atualmente válidas
                 var useRows = tab.Rows;
-                var tRows = DataBase.Count(parTable);
+                var tRows = CodeCraft.DataBase.Count(parTable);
 
 
                 // Verifica sets do filtro
@@ -1557,7 +1260,7 @@ var DataBase = new (function () {
 
 
                 // Se foi definida uma clausula where
-                if (_isNotNullValue(filter.Where)) {
+                if (_bt.IsNotNullValue(filter.Where)) {
 
                     // Se for uma função, evoca-a para que o filtro seja aplicado
                     if (typeof (filter.Where) === 'function') {
@@ -1602,7 +1305,7 @@ var DataBase = new (function () {
                                 }
                             }
 
-                            useRows.sort(_dynamicSort(order[0], order[1], tp));
+                            useRows.sort(_bt.DynamicSort(order[0], order[1], tp));
                         }
                     }
                 }
@@ -1624,7 +1327,7 @@ var DataBase = new (function () {
                 if (iStart <= o.ValidRows - 1) {
                     for (var i = iStart; i < iEnd; i++) {
                         if (i <= o.ValidRows - 1) {
-                            o.SelectedRows.push(_cloneObject(useRows[i]));
+                            o.SelectedRows.push(_bt.CloneObject(useRows[i]));
                         }
                     }
                 }
