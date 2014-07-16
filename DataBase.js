@@ -75,7 +75,9 @@ CodeCraft.DataBase = new (function () {
     * @property {Boolean}                       Unique = false                      Indica que o valor desta coluna não pode ser repetido.
     * @property {Boolean}                       ReadOnly = false                    Indica que o valor só será setado 1 vez.
     * @property {String}                        Default = null                      Valor padrão para a propriedade.
-    * @property {Function}                      Format = null                       Método para formatação do valor [executado após validação].
+    * @property {Function}                      StorageFormat = null                Método para formatação do valor pré-armazenamento [executado após validação de tipo].
+    * @property {Function}                      CheckDisplayFormat = null           Método para validar um formato específico da string.
+    * @property {Function}                      RemoveDisplayFormat = null          Método para retornar a string para seu formato "natural".
     */
 
 
@@ -294,6 +296,162 @@ CodeCraft.DataBase = new (function () {
 
 
     /*
+    * TRATAMENTO DE ERROS
+    */
+
+
+
+    /**
+    * Objeto de registro de erro.
+    * 
+    * @typedef {DataBaseError}
+    *
+    * @property {String}                        ErrorType                           Tipo do erro.
+    * @property {String}                        Message                             Mensagem de erro.
+    * @property {Integer}                       ProcessId                           Id de um processo.
+    */
+
+
+
+    /**
+    * Tipos de erros.
+    *
+    * @memberof DataBase
+    *
+    * @enum ErrorType
+    *
+    * @type {String}
+    *
+    * @readonly
+    */
+    var ErrorType = {
+        /** 
+        * Tabela já existente. 
+        *
+        * @memberof ErrorType
+        */
+        TableAlreadyExists: 'TableAlreadyExists',
+        /** 
+        * Tabela não existe. 
+        *
+        * @memberof ErrorType
+        */
+        TableDoesNotExist: 'TableDoesNotExist',
+        /** 
+        * Coluna já existente. 
+        *
+        * @memberof ErrorType
+        */
+        ColumnAlreadyExists: 'ColumnAlreadyExists',
+        /** 
+        * Objeto passado é invalido ou nulo. 
+        *
+        * @memberof ErrorType
+        */
+        InvalidOrNullDataObject: 'InvalidOrNullDataObject',
+        /** 
+        * Valores nulos não são aceitos. 
+        *
+        * @memberof ErrorType
+        */
+        DoesNotAcceptNullValues: 'DoesNotAcceptNullValues',
+        /** 
+        * Tamanho máximo da string foi atinjido. 
+        *
+        * @memberof ErrorType
+        */
+        MaxLengthExceeded: 'MaxLengthExceeded',
+        /** 
+        * Valor fora da faixa permitida. 
+        *
+        * @memberof ErrorType
+        */
+        OutOfRange: 'OutOfRange',
+        /** 
+        * Regra de valor único foi violada. 
+        *
+        * @memberof ErrorType
+        */
+        UniqueConstraintViolated: 'UniqueConstraintViolated',
+        /** 
+        * Tabela já existente. 
+        *
+        * @memberof ErrorType
+        */
+        InvalidType: 'InvalidType'
+    }
+
+
+
+
+
+
+    /**
+    * ID do próximo processo de erro.
+    *
+    * @memberof DataBase
+    *
+    * @type {Integer}
+    */
+    var _nextProcessId = 0;
+
+
+    /**
+    * Erros ocorridos durante o processamento.
+    *
+    * @memberof DataBase
+    *
+    * @type {DataBaseError[]}
+    */
+    var _dataErrors = [];
+
+
+
+
+
+    /**
+    * Registra uma falha no processamento.
+    * 
+    * @function _registerError
+    *
+    * @private
+    *
+    * @param {ErrorType}                     parErrorType                           Tipo do erro.
+    * @param {String}                        parMessage                             Mensagem de erro.
+    *
+    * @return {Boolean}
+    */
+    var _registerError = function (parErrorType, parMessage) {
+
+        _dataErrors.push({
+            ErrorType: parErrorType,
+            Message: parMessage,
+            ProcessId: _nextProcessId
+        });
+
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /*
     * MÉTODOS GERADORES DE OBJETOS
     */
 
@@ -320,7 +478,7 @@ CodeCraft.DataBase = new (function () {
         });
 
 
-        var cId = _createDataTableColumn('Id', 'Integer', null, null, null, null, false, false, false, true, true, null, null);
+        var cId = _createDataTableColumn('Id', 'Integer', null, null, null, null, false, false, false, true, true, null, null, null);
         if (cId != null) {
             _alterTableSetColumn(parTable, cId);
             return true;
@@ -398,7 +556,10 @@ CodeCraft.DataBase = new (function () {
         var r = false;
 
         var tab = _selectTable(parTable);
-        if (tab != null) {
+        if (tab == null) {
+            _registerError(ErrorType.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
+        }
+        else {
             // Verifica se o nome da coluna não está repetido
             var isNew = true;
             for (var c in tab.Columns) {
@@ -411,7 +572,9 @@ CodeCraft.DataBase = new (function () {
                 tab.Columns.push(parNewColumn);
                 r = true;
             }
-
+            else {
+                _registerError(ErrorType.ColumnAlreadyExists, 'Column "' + parNewColumn.Name + '" Already Exist In Table "' + parTable + '".');
+            }
         }
 
         return r;
@@ -438,12 +601,15 @@ CodeCraft.DataBase = new (function () {
     * @param {Boolean}                       [parUnique = false]                 Indica que o valor desta coluna não pode ser repetido.
     * @param {Boolean}                       [parReadOnly = false]               Indica que o valor só será setado 1 vez.
     * @param {String}                        [parDefault = null]                 Valor padrão para a propriedade.
-    * @param {Function}                      [parFormat = null]                  Método para formatação do valor [executado após validação].
+    * @param {Function}                      [parStorageFormat = null]           Método para formatação do valor pré-armazenamento [executado após validação de tipo].
+    * @param {Function}                      [parCheckDisplayFormat = null]      Método para validar um formato específico da string.
+    * @param {Function}                      [parRemoveDisplayFormat = null]     Método para retornar a string para seu formato "natural".
     *
     * @return {!DataTableColumn}
     */
     var _createDataTableColumn = function (parName, parType, parLength, parMin, parMax, parRefType,
-                                        parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parFormat) {
+                                        parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault,
+                                        parStorageFormat, parCheckDisplayFormat, parRemoveDisplayFormat) {
         var Type = null;
 
 
@@ -455,7 +621,10 @@ CodeCraft.DataBase = new (function () {
 
 
 
-        if (Type != null) {
+        if (Type == null) {
+            _registerError(ErrorType.InvalidType, 'Type "' + parType + '" Is Invalid.');
+        }
+        else {
             parLength = _bt.InitiSet(parLength, null, true);
             parMin = _bt.InitiSet(parMin, null, true);
             parMax = _bt.InitiSet(parMax, null, true);
@@ -467,7 +636,9 @@ CodeCraft.DataBase = new (function () {
             parUnique = _bt.InitiSet(parUnique, false, true);
             parReadOnly = _bt.InitiSet(parReadOnly, false, true);
             parDefault = _bt.InitiSet(parDefault, null, true);
-            parFormat = _bt.InitiSet(parFormat, null, true);
+            parStorageFormat = _bt.InitiSet(parStorageFormat, null, true);
+            parCheckDisplayFormat = _bt.InitiSet(parCheckDisplayFormat, null, true);
+            parRemoveDisplayFormat = _bt.InitiSet(parRemoveDisplayFormat, null, true);
 
 
             // Tratamentos especiais conforme o tipo...
@@ -478,6 +649,9 @@ CodeCraft.DataBase = new (function () {
                     parLength = null;
                     parMin = null;
                     parMax = null;
+                    parStorageFormat = null;
+                    parCheckDisplayFormat = null;
+                    parRemoveDisplayFormat = null;
 
                     if (Type.Name == 'Object[]' && !_bt.IsNotNullValue(parDefault)) { parDefault = []; }
 
@@ -497,6 +671,7 @@ CodeCraft.DataBase = new (function () {
                     parLength = null;
                     parMin = (parMin != null && parMin >= Type.Min) ? parMin : Type.Min;
                     parMax = (parMax != null && parMax <= Type.Max) ? parMax : Type.Max;
+                    parStorageFormat = null;
 
                     break;
             }
@@ -515,7 +690,9 @@ CodeCraft.DataBase = new (function () {
                 Unique: parUnique,
                 ReadOnly: parReadOnly,
                 Default: parDefault,
-                Format: parFormat
+                StorageFormat: parStorageFormat,
+                CheckDisplayFormat: parCheckDisplayFormat,
+                RemoveDisplayFormat: parRemoveDisplayFormat
             };
         }
 
@@ -546,6 +723,8 @@ CodeCraft.DataBase = new (function () {
         // Se não é permitido o set desta coluna...
         if (cRule.AllowSet) {
 
+
+
             // Corrige valores nulos para quando há um valor padrão.
             if (val == undefined || val == null) {
                 val = cRule.Default;
@@ -559,30 +738,37 @@ CodeCraft.DataBase = new (function () {
 
             // Se for um valor considerado vazio, nulo ou indefinido
             if (!_bt.IsNotNullValue(val)) {
-                if ((val == null && cRule.AllowNull == false) || (val == '' && cRule.AllowEmpty == false)) { isOK = false; }
+                if ((val == null && cRule.AllowNull == false) || (val == '' && cRule.AllowEmpty == false)) {
+                    isOK = false;
+                    _registerError(ErrorType.DoesNotAcceptNullValues, 'Column "' + cRule.Name + '" Does Not Accept Null Values.');
+                }
             }
             // Senão, se há um valor setado...
             else {
-                // Verifica o formato do valor indicado
+                // Se há um removedor de formado disponível, usa-o antes de qualquer validação.
+                val = (cRule.RemoveDisplayFormat != null) ? cRule.RemoveDisplayFormat(val) : val;
+
+                // Verifica o tipo do valor indicado
                 val = cRule.Type.TryParse(val);
 
                 // Valida o valor conforme o tipo de dado da coluna
                 isOK = cRule.Type.Validate(val);
                 if (isOK) {
                     // Formata o valor
-                    val = (cRule.Format != null) ? cRule.Format(val) : val;
+                    val = (cRule.StorageFormat != null) ? cRule.StorageFormat(val) : val;
 
 
                     switch (cRule.Type.Name) {
-                        // Se for uma string, verifica tamanho da mesma.                
+                        // Se for uma string, verifica tamanho da mesma.                               
                         case 'String':
                             if (cRule.Length != null && val.length > cRule.Length) {
                                 isOK = false;
+                                _registerError(ErrorType.MaxLengthExceeded, 'Max Length Exceeded For Column "' + cRule.Name + '", Value ["' + val + '"].');
                             }
 
                             break;
 
-                        // Se for um número, verifica se o valor informado está dentro do range.                
+                        // Se for um número, verifica se o valor informado está dentro do range.                               
                         case 'Byte':
                         case 'Short':
                         case 'Integer':
@@ -591,6 +777,7 @@ CodeCraft.DataBase = new (function () {
                         case 'Double':
                             if (val < cRule.Type.Min || val > cRule.Type.Max) {
                                 isOK = false;
+                                _registerError(ErrorType.OutOfRange, 'Value "' + val + '" Is Out Of Range For Column "' + cRule.Name + '[' + cRule.Type.Name + ']".');
                             }
 
                             break;
@@ -601,7 +788,11 @@ CodeCraft.DataBase = new (function () {
                     // Verifica regra de valor único
                     if (isOK && cRule.Unique) {
                         for (var r in tab.Rows) {
-                            if (tab.Rows[r][cRule.Name] == val) { isOK = false; break; }
+                            if (tab.Rows[r][cRule.Name] == val) {
+                                isOK = false;
+                                _registerError(ErrorType.UniqueConstraintViolated, 'Unique Constraint Violated For Column "' + cRule.Name + '", Value ["' + val + '"].');
+                                break;
+                            }
                         }
                     }
 
@@ -717,15 +908,19 @@ CodeCraft.DataBase = new (function () {
 
             var r = false;
 
-            // Apenas se a tabela ainda não existir e for corretamente criada...
-            if (_selectTable(parTable) == null) {
+            // Verifica existência de uma tabela com mesmo nome
+            if (_selectTable(parTable) != null) {
+                _registerError(ErrorType.TableAlreadyExists, 'Table "' + parTable + '" Already Exist.');
+            }
+            else {
                 if (_createTable(parTable)) {
                     r = true;
 
                     for (var it in parConfig) {
                         var c = parConfig[it];
                         var nCol = _createDataTableColumn(c.Name, c.Type, c.Length, c.Min, c.Max, c.RefType,
-                                                          c.AllowSet, c.AllowNull, c.AllowEmpty, c.Unique, c.ReadOnly, c.Default, c.Format);
+                                                          c.AllowSet, c.AllowNull, c.AllowEmpty, c.Unique, c.ReadOnly, c.Default, 
+                                                          c.StorageFormat, c.CheckDisplayFormat, c.RemoveDisplayFormat);
 
                         if (nCol != null) {
                             r = _alterTableSetColumn(parTable, nCol);
@@ -740,6 +935,7 @@ CodeCraft.DataBase = new (function () {
                 }
             }
 
+            _nextProcessId++;
             return r;
         },
 
@@ -766,14 +962,18 @@ CodeCraft.DataBase = new (function () {
         * @param {Boolean}                       [parUnique = false]                 Indica que o valor desta coluna não pode ser repetido.
         * @param {Boolean}                       [parReadOnly = false]               Indica que o valor só será setado 1 vez.
         * @param {String}                        [parDefault = null]                 Valor padrão para a propriedade.
-        * @param {Function}                      [parFormat = null]                  Método para formatação do valor [executado após validação].
+        * @param {Function}                      [parStorageFormat = null]           Método para formatação do valor pré-armazenamento [executado após validação de tipo].
+        * @param {Function}                      [parCheckDisplayFormat = null]      Método para validar um formato específico da string.
+        * @param {Function}                      [parRemoveDisplayFormat = null]     Método para retornar a string para seu formato "natural".
         *
         * @return {!DataTableColumn}
         */
         CreateDataTableColumn: function (parName, parType, parLength, parMin, parMax, parRefType,
-                                            parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parFormat) {
+                                            parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, 
+                                            parStorageFormat, parCheckDisplayFormat, parRemoveDisplayFormat) {
             return _createDataTableColumn(parName, parType, parLength, parMin, parMax, parRefType,
-                                            parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parFormat);
+                                            parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, 
+                                            parStorageFormat, parCheckDisplayFormat, parRemoveDisplayFormat);
         },
 
 
@@ -794,12 +994,15 @@ CodeCraft.DataBase = new (function () {
 
             var r = 0;
 
-            // Se a tabela existir
             var tab = _selectTable(parTable);
-            if (tab != null) {
+            if (tab == null) {
+                _registerError(ErrorType.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
+            }
+            else {
                 r = tab.Rows.length;
             }
 
+            _nextProcessId++;
             return r;
         },
 
@@ -823,9 +1026,11 @@ CodeCraft.DataBase = new (function () {
 
             var r = false;
 
-            // Se a tabela existir
             var tab = _selectTable(parTable);
-            if (tab != null) {
+            if (tab == null) {
+                _registerError(ErrorType.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
+            }
+            else {
                 for (var it in tab.Rows) {
                     if (tab.Rows[it]['Id'] == Id) {
                         r = true;
@@ -834,6 +1039,7 @@ CodeCraft.DataBase = new (function () {
                 }
             }
 
+            _nextProcessId++;
             return r;
         },
 
@@ -856,9 +1062,11 @@ CodeCraft.DataBase = new (function () {
         InsertInto: function (parTable, rowData) {
             var r = false;
 
-            // Se a tabela existir
             var tab = _selectTable(parTable);
-            if (tab != null) {
+            if (tab == null) {
+                _registerError(ErrorType.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
+            }
+            else {
 
                 var newRow = {};
                 var countOK = 0;
@@ -881,11 +1089,12 @@ CodeCraft.DataBase = new (function () {
                             countOK++;
                         }
                         else {
-                            
+
                             // Conforme a natureza da coluna de dados...
                             switch (cRule.Type.Name) {
                                 case 'Object':
                                     val = CodeCraft.DataBase.SaveOrUpdate(cRule.RefType, val);
+                                    _nextProcessId--;
                                     break;
 
                                 case 'Object[]':
@@ -901,6 +1110,7 @@ CodeCraft.DataBase = new (function () {
                                         for (var it in val) {
                                             if (isOK) {
                                                 var nO = CodeCraft.DataBase.SaveOrUpdate(cRule.RefType, val[it]);
+                                                _nextProcessId--;
 
                                                 if (nO === null) { isOK = false; }
                                                 else { nVal.push(nO); }
@@ -913,6 +1123,7 @@ CodeCraft.DataBase = new (function () {
                                             nVal = undefined;
                                             for (var it in nVal) {
                                                 CodeCraft.DataBase.DeleteFrom(cRule.RefType, nVal[it]['Id']);
+                                                _nextProcessId--;
                                             }
                                         }
 
@@ -946,7 +1157,7 @@ CodeCraft.DataBase = new (function () {
                     tab.Rows.push(newRow);
                     tab.NextId++;
 
-                    
+
                     rowData['Id'] = newRow['Id'];
 
                     r = true;
@@ -954,6 +1165,7 @@ CodeCraft.DataBase = new (function () {
             }
 
 
+            _nextProcessId++;
             return r;
         },
 
@@ -979,12 +1191,17 @@ CodeCraft.DataBase = new (function () {
 
 
             // Apenas se há um Id definido
-            if (rowData['Id'] !== undefined) {
+            if (rowData['Id'] === undefined) {
+                _registerError(ErrorType.InvalidOrNullDataObject, 'Invalid Or Null DataObject.');
+            }
+            else {
                 var Id = rowData['Id'];
 
-                // Se a tabela existir
                 var tab = _selectTable(parTable);
-                if (tab != null) {
+                if (tab == null) {
+                    _registerError(ErrorType.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
+                }
+                else {
 
 
                     // Se o registro existir, resgata sua posição no array
@@ -1013,6 +1230,7 @@ CodeCraft.DataBase = new (function () {
                                 switch (cRule.Type.Name) {
                                     case 'Object':
                                         val = CodeCraft.DataBase.SaveOrUpdate(cRule.RefType, val);
+                                        _nextProcessId--;
                                         break;
 
                                     case 'Object[]':
@@ -1028,6 +1246,7 @@ CodeCraft.DataBase = new (function () {
                                             for (var it in val) {
                                                 if (isOK) {
                                                     var nO = CodeCraft.DataBase.SaveOrUpdate(cRule.RefType, val[it]);
+                                                    _nextProcessId--;
 
                                                     if (nO === null) { isOK = false; }
                                                     else { nVal.push(nO); }
@@ -1040,6 +1259,7 @@ CodeCraft.DataBase = new (function () {
                                                 nVal = undefined;
                                                 for (var it in nVal) {
                                                     CodeCraft.DataBase.DeleteFrom(cRule.RefType, nVal[it]['Id']);
+                                                    _nextProcessId--;
                                                 }
                                             }
 
@@ -1084,6 +1304,7 @@ CodeCraft.DataBase = new (function () {
             }
 
 
+            _nextProcessId++;
             return r;
         },
 
@@ -1124,6 +1345,9 @@ CodeCraft.DataBase = new (function () {
                     }
                 }
             }
+            else {
+                _registerError(ErrorType.InvalidOrNullDataObject, 'Invalid Or Null DataObject.');
+            }
 
             return o;
         },
@@ -1147,9 +1371,11 @@ CodeCraft.DataBase = new (function () {
 
             var r = null;
 
-            // Se a tabela existir
             var tab = _selectTable(parTable);
-            if (tab != null) {
+            if (tab == null) {
+                _registerError(ErrorType.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
+            }
+            else {
                 var i = -1;
 
                 for (var it in tab.Rows) {
@@ -1163,6 +1389,7 @@ CodeCraft.DataBase = new (function () {
                 }
             }
 
+            _nextProcessId++;
             return r;
         },
 
@@ -1187,9 +1414,11 @@ CodeCraft.DataBase = new (function () {
             var r = null;
             var o = null;
 
-            // Se a tabela existir
             var tab = _selectTable(parTable);
-            if (tab != null) {
+            if (tab == null) {
+                _registerError(ErrorType.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
+            }
+            else {
                 for (var it in tab.Rows) {
                     if (tab.Rows[it]['Id'] == Id) {
                         o = tab.Rows[it];
@@ -1203,6 +1432,7 @@ CodeCraft.DataBase = new (function () {
                 r = _bt.CloneObject(o);
             }
 
+            _nextProcessId++;
             return r;
         },
 
@@ -1233,9 +1463,11 @@ CodeCraft.DataBase = new (function () {
             };
 
 
-            // Se a tabela existir
             var tab = _selectTable(parTable);
-            if (tab != null) {
+            if (tab == null) {
+                _registerError(ErrorType.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
+            }
+            else {
                 // Resgata referência das tabelas atualmente válidas
                 var useRows = tab.Rows;
                 var tRows = CodeCraft.DataBase.Count(parTable);
@@ -1335,7 +1567,7 @@ CodeCraft.DataBase = new (function () {
 
 
 
-
+            _nextProcessId++;
             return o;
         }
     };
