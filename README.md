@@ -24,6 +24,7 @@ mesmos.
 
 * `ResetDataBase`               : Reinicia o objeto eliminando totalmente as tabelas e seus dados.
 * `RetrieveDataBase`            : Retorna um objeto clone do banco de dados atual.
+* `GetLastError`                : Resgata os erros ocorridos no último processamento feito.
 * `CreateTable`                 : Gera um novo objeto simulando uma tabela.
 * `CreateDataTableColumn`       : Cria um novo objeto "DataTableColumn".
 * `Count`                       : Conta quantos registros existem em uma determinada tabela.

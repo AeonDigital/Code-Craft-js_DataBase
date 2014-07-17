@@ -766,7 +766,7 @@ CodeCraft.DataBase = new (function () {
 
 
                     switch (cRule.Type.Name) {
-                        // Se for uma string, verifica tamanho da mesma.                               
+                        // Se for uma string, verifica tamanho da mesma.                                   
                         case 'String':
                             if (cRule.Length != null && val.length > cRule.Length) {
                                 isOK = false;
@@ -775,7 +775,7 @@ CodeCraft.DataBase = new (function () {
 
                             break;
 
-                        // Se for um número, verifica se o valor informado está dentro do range.                               
+                        // Se for um número, verifica se o valor informado está dentro do range.                                   
                         case 'Byte':
                         case 'Short':
                         case 'Integer':
@@ -893,6 +893,32 @@ CodeCraft.DataBase = new (function () {
         */
         RetrieveDataBase: function () {
             return _bt.CloneObject(_dataTables);
+        },
+
+
+
+
+
+        /**
+        * Resgata os erros ocorridos no último processamento feito.
+        * 
+        * @function GetLastError
+        *
+        * @memberof DataBase
+        *
+        * @return {?DataBaseError[]}
+        */
+        GetLastError: function () {
+            var pId = _nextProcessId - 1;
+            var r = [];
+
+            for (var it in _dataErrors) {
+                if (_dataErrors[it].ProcessId == pId) {
+                    r = _bt.CloneObject(_dataErrors[it]);
+                }
+            }
+
+            return (r.length == 0) ? null : r;
         },
 
 
