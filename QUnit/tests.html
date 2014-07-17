@@ -8,6 +8,7 @@
         
         <script src="resources/qunit.js"></script>
         <script src="https://raw.githubusercontent.com/AeonDigital/Code-Craft-js_BasicTools/master/BasicTools.js"></script>
+        <script src="https://raw.githubusercontent.com/AeonDigital/Code-Craft-js_StringExtension/master/StringExtension.js"></script>
         <script src="../DataBase.js"></script>
     </head>
     <body>
@@ -32,7 +33,7 @@
                     Unique: false,
                     ReadOnly: false,
                     Default: null,
-                    StorageFormat: null
+                    SuperTypeSet: null
                 },
                 {
                     Name: 'Numero',
@@ -43,7 +44,7 @@
                     Unique: false,
                     ReadOnly: false,
                     Default: null,
-                    StorageFormat: null
+                    SuperTypeSet: null
                 }
                 ];
 
@@ -58,7 +59,7 @@
                     Unique: false,
                     ReadOnly: false,
                     Default: null,
-                    StorageFormat: null
+                    SuperTypeSet: null
                 },
                 {
                     Name: 'Movel',
@@ -69,7 +70,7 @@
                     Unique: false,
                     ReadOnly: false,
                     Default: true,
-                    StorageFormat: null
+                    SuperTypeSet: null
                 }
                 ];
 
@@ -84,7 +85,7 @@
                     Unique: false,
                     ReadOnly: false,
                     Default: null,
-                    StorageFormat: null
+                    SuperTypeSet: null
                 },
                  {
                      Name: 'Login',
@@ -95,7 +96,7 @@
                      Unique: true,
                      ReadOnly: true,
                      Default: null,
-                     StorageFormat: function (v) { return v.toLowerCase(); }
+                     SuperTypeSet: String.Pattern.World.Email
                  },
                  {
                      Name: 'Senha',
@@ -106,7 +107,7 @@
                      Unique: false,
                      ReadOnly: false,
                      Default: null,
-                     StorageFormat: null
+                     SuperTypeSet: null
                  },
                  {
                      Name: 'CPF',
@@ -117,7 +118,7 @@
                      Unique: true,
                      ReadOnly: false,
                      Default: null,
-                     StorageFormat: null
+                     SuperTypeSet: null
                  },
                  {
                      Name: 'CNPJ',
@@ -128,7 +129,7 @@
                      Unique: true,
                      ReadOnly: false,
                      Default: null,
-                     StorageFormat: null
+                     SuperTypeSet: null
                  },
                  {
                      Name: 'DataNascimento',
@@ -139,7 +140,7 @@
                      Unique: false,
                      ReadOnly: true,
                      Default: null,
-                     StorageFormat: null
+                     SuperTypeSet: null
                  },
                  {
                      Name: 'Idade',
@@ -150,7 +151,7 @@
                      Unique: false,
                      ReadOnly: true,
                      Default: null,
-                     StorageFormat: null
+                     SuperTypeSet: null
                  },
                  {
                      Name: 'Endereco',
@@ -162,7 +163,7 @@
                      Unique: false,
                      ReadOnly: false,
                      Default: null,
-                     StorageFormat: null
+                     SuperTypeSet: null
                  },
                  {
                      Name: 'Telefones',
@@ -174,7 +175,7 @@
                      Unique: false,
                      ReadOnly: false,
                      Default: null,
-                     StorageFormat: null
+                     SuperTypeSet: null
                  }
                  ];
 

@@ -59,6 +59,24 @@ CodeCraft.DataBase = new (function () {
 
 
     /**
+    * Objeto de definição de tipos de dados especiais.
+    *
+    * @typedef DataDefinition
+    *
+    * @global
+    *
+    * @property {?String}                       Mask                                    Mascara do formato que se quer representar.
+    * @property {RegExp}                        RegExp                                  Objeto "RegExp" responsável por validar o formato indicado.
+    * @property {?Integer}                      MinLength = null                        Número mínimo de caracteres aceitos para descrever o formato.
+    * @property {?Integer}                      MaxLength = null                        Número máximo de caracteres aceitos para descrever o formato.
+    * @property {Function}                      Check                                   Função validadora do tipo de dado.
+    * @property {Function}                      Format                                  Função formatadora do tipo.
+    * @property {?Function}                     RemoveFormat                            Função para remover formato inserido.
+    */
+
+
+
+    /**
     * Representa uma coluna de dados da tabela.
     * 
     * @typedef {DataTableColumn}
@@ -75,9 +93,7 @@ CodeCraft.DataBase = new (function () {
     * @property {Boolean}                       Unique = false                      Indica que o valor desta coluna não pode ser repetido.
     * @property {Boolean}                       ReadOnly = false                    Indica que o valor só será setado 1 vez.
     * @property {String}                        Default = null                      Valor padrão para a propriedade.
-    * @property {Function}                      StorageFormat = null                Método para formatação do valor pré-armazenamento [executado após validação de tipo].
-    * @property {Function}                      CheckDisplayFormat = null           Método para validar um formato específico da string.
-    * @property {Function}                      RemoveDisplayFormat = null          Método para retornar a string para seu formato "natural".
+    * @property {DataDefinition}                SuperTypeSet = null                 Objeto de definição de um tipo especial de formatação.
     */
 
 
@@ -601,15 +617,12 @@ CodeCraft.DataBase = new (function () {
     * @param {Boolean}                       [parUnique = false]                 Indica que o valor desta coluna não pode ser repetido.
     * @param {Boolean}                       [parReadOnly = false]               Indica que o valor só será setado 1 vez.
     * @param {String}                        [parDefault = null]                 Valor padrão para a propriedade.
-    * @param {Function}                      [parStorageFormat = null]           Método para formatação do valor pré-armazenamento [executado após validação de tipo].
-    * @param {Function}                      [parCheckDisplayFormat = null]      Método para validar um formato específico da string.
-    * @param {Function}                      [parRemoveDisplayFormat = null]     Método para retornar a string para seu formato "natural".
+    * @param {DataDefinition}                [parSuperTypeSet = null]            Objeto de definição de um tipo especial de formatação.
     *
     * @return {!DataTableColumn}
     */
     var _createDataTableColumn = function (parName, parType, parLength, parMin, parMax, parRefType,
-                                        parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault,
-                                        parStorageFormat, parCheckDisplayFormat, parRemoveDisplayFormat) {
+                                        parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parSuperTypeSet) {
         var Type = null;
 
 
@@ -636,9 +649,8 @@ CodeCraft.DataBase = new (function () {
             parUnique = _bt.InitiSet(parUnique, false, true);
             parReadOnly = _bt.InitiSet(parReadOnly, false, true);
             parDefault = _bt.InitiSet(parDefault, null, true);
-            parStorageFormat = _bt.InitiSet(parStorageFormat, null, true);
-            parCheckDisplayFormat = _bt.InitiSet(parCheckDisplayFormat, null, true);
-            parRemoveDisplayFormat = _bt.InitiSet(parRemoveDisplayFormat, null, true);
+            parSuperTypeSet = _bt.InitiSet(parSuperTypeSet, null, true);
+
 
 
             // Tratamentos especiais conforme o tipo...
@@ -649,9 +661,7 @@ CodeCraft.DataBase = new (function () {
                     parLength = null;
                     parMin = null;
                     parMax = null;
-                    parStorageFormat = null;
-                    parCheckDisplayFormat = null;
-                    parRemoveDisplayFormat = null;
+                    parSuperTypeSet = null;
 
                     if (Type.Name == 'Object[]' && !_bt.IsNotNullValue(parDefault)) { parDefault = []; }
 
@@ -671,7 +681,6 @@ CodeCraft.DataBase = new (function () {
                     parLength = null;
                     parMin = (parMin != null && parMin >= Type.Min) ? parMin : Type.Min;
                     parMax = (parMax != null && parMax <= Type.Max) ? parMax : Type.Max;
-                    parStorageFormat = null;
 
                     break;
             }
@@ -690,9 +699,7 @@ CodeCraft.DataBase = new (function () {
                 Unique: parUnique,
                 ReadOnly: parReadOnly,
                 Default: parDefault,
-                StorageFormat: parStorageFormat,
-                CheckDisplayFormat: parCheckDisplayFormat,
-                RemoveDisplayFormat: parRemoveDisplayFormat
+                SuperTypeSet: parSuperTypeSet
             };
         }
 
@@ -746,7 +753,7 @@ CodeCraft.DataBase = new (function () {
             // Senão, se há um valor setado...
             else {
                 // Se há um removedor de formado disponível, usa-o antes de qualquer validação.
-                val = (cRule.RemoveDisplayFormat != null) ? cRule.RemoveDisplayFormat(val) : val;
+                val = (cRule.SuperTypeSet != null && cRule.SuperTypeSet.RemoveFormat != null) ? cRule.SuperTypeSet.RemoveFormat(val) : val;
 
                 // Verifica o tipo do valor indicado
                 val = cRule.Type.TryParse(val);
@@ -755,7 +762,7 @@ CodeCraft.DataBase = new (function () {
                 isOK = cRule.Type.Validate(val);
                 if (isOK) {
                     // Formata o valor
-                    val = (cRule.StorageFormat != null) ? cRule.StorageFormat(val) : val;
+                    val = (cRule.SuperTypeSet != null && cRule.SuperTypeSet.Format != null) ? cRule.SuperTypeSet.Format(val) : val;
 
 
                     switch (cRule.Type.Name) {
@@ -919,8 +926,7 @@ CodeCraft.DataBase = new (function () {
                     for (var it in parConfig) {
                         var c = parConfig[it];
                         var nCol = _createDataTableColumn(c.Name, c.Type, c.Length, c.Min, c.Max, c.RefType,
-                                                          c.AllowSet, c.AllowNull, c.AllowEmpty, c.Unique, c.ReadOnly, c.Default, 
-                                                          c.StorageFormat, c.CheckDisplayFormat, c.RemoveDisplayFormat);
+                                                          c.AllowSet, c.AllowNull, c.AllowEmpty, c.Unique, c.ReadOnly, c.Default, c.SuperTypeSet);
 
                         if (nCol != null) {
                             r = _alterTableSetColumn(parTable, nCol);
@@ -962,18 +968,14 @@ CodeCraft.DataBase = new (function () {
         * @param {Boolean}                       [parUnique = false]                 Indica que o valor desta coluna não pode ser repetido.
         * @param {Boolean}                       [parReadOnly = false]               Indica que o valor só será setado 1 vez.
         * @param {String}                        [parDefault = null]                 Valor padrão para a propriedade.
-        * @param {Function}                      [parStorageFormat = null]           Método para formatação do valor pré-armazenamento [executado após validação de tipo].
-        * @param {Function}                      [parCheckDisplayFormat = null]      Método para validar um formato específico da string.
-        * @param {Function}                      [parRemoveDisplayFormat = null]     Método para retornar a string para seu formato "natural".
+        * @param {DataDefinition}                [parSuperTypeSet = null]            Objeto de definição de um tipo especial de formatação.
         *
         * @return {!DataTableColumn}
         */
         CreateDataTableColumn: function (parName, parType, parLength, parMin, parMax, parRefType,
-                                            parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, 
-                                            parStorageFormat, parCheckDisplayFormat, parRemoveDisplayFormat) {
+                                            parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parSuperTypeSet) {
             return _createDataTableColumn(parName, parType, parLength, parMin, parMax, parRefType,
-                                            parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, 
-                                            parStorageFormat, parCheckDisplayFormat, parRemoveDisplayFormat);
+                                            parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parSuperTypeSet);
         },
 
 
