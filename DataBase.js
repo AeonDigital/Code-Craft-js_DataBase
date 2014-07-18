@@ -670,6 +670,10 @@ CodeCraft.DataBase = new (function () {
                 case 'String':
                     parMin = null;
                     parMax = null;
+                    if (parSuperTypeSet != null && parSuperTypeSet.MaxLength != null) {
+                        parLength = parSuperTypeSet.MaxLength;
+                    }
+
                     break;
 
                 case 'Byte':
@@ -766,7 +770,7 @@ CodeCraft.DataBase = new (function () {
 
 
                     switch (cRule.Type.Name) {
-                        // Se for uma string, verifica tamanho da mesma.                                   
+                        // Se for uma string, verifica tamanho da mesma.                                    
                         case 'String':
                             if (cRule.Length != null && val.length > cRule.Length) {
                                 isOK = false;
@@ -775,7 +779,7 @@ CodeCraft.DataBase = new (function () {
 
                             break;
 
-                        // Se for um número, verifica se o valor informado está dentro do range.                                   
+                        // Se for um número, verifica se o valor informado está dentro do range.                                    
                         case 'Byte':
                         case 'Short':
                         case 'Integer':
