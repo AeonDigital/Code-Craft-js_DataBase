@@ -106,6 +106,8 @@ CodeCraft.DataBase = new (function () {
     * @property {String}                        Name                                Nome do tipo.
     * @property {Function}                      Validate                            Função que efetua a validação do tipo.
     * @property {Function}                      TryParse                            Função que tenta converter o valor original para este tipo.
+    * @property {Integer}                       Min                                 Valor mínimo que pode ser assumido por este tipo.
+    * @property {Integer}                       Max                                 Valor máximo que pode ser assumido por este tipo.
     */
 
 
@@ -272,6 +274,16 @@ CodeCraft.DataBase = new (function () {
             }
         },
         {
+            Name: 'Enum',
+            Validate: function (v, arr) {
+                for (var it in arr) {
+                    if (arr[it] === v) { return true; }
+                }
+                return false;
+            },
+            TryParse: function (v) { return v; }
+        },
+        {
             Name: 'Object',
             Validate: function (v) { return (typeof (v) === 'object') ? true : false; },
             TryParse: function (v) { return v; }
@@ -365,6 +377,12 @@ CodeCraft.DataBase = new (function () {
         * @memberof ErrorType
         */
         InvalidOrNullDataObject: 'InvalidOrNullDataObject',
+        /** 
+        * O valor passado foi considerado inválido. 
+        *
+        * @memberof ErrorType
+        */
+        InvalidValue: 'InvalidValue',
         /** 
         * Valores nulos não são aceitos. 
         *
@@ -638,73 +656,114 @@ CodeCraft.DataBase = new (function () {
             _registerError(ErrorType.InvalidType, 'Type "' + parType + '" Is Invalid.');
         }
         else {
-            parLength = _bt.InitiSet(parLength, null, true);
-            parMin = _bt.InitiSet(parMin, null, true);
-            parMax = _bt.InitiSet(parMax, null, true);
+            var isOk = true;
 
-            parRefType = _bt.InitiSet(parRefType, null, true);
-            parAllowSet = _bt.InitiSet(parAllowSet, true, true);
-            parAllowNull = _bt.InitiSet(parAllowNull, true, true);
-            parAllowEmpty = _bt.InitiSet(parAllowEmpty, false, true);
-            parUnique = _bt.InitiSet(parUnique, false, true);
-            parReadOnly = _bt.InitiSet(parReadOnly, false, true);
-            parDefault = _bt.InitiSet(parDefault, null, true);
-            parSuperTypeSet = _bt.InitiSet(parSuperTypeSet, null, true);
-
-
-
-            // Tratamentos especiais conforme o tipo...
-            switch (Type.Name) {
-                case 'Boolean':
-                case 'Object':
-                case 'Object[]':
-                    parLength = null;
-                    parMin = null;
-                    parMax = null;
-                    parSuperTypeSet = null;
-
-                    if (Type.Name == 'Object[]' && !_bt.IsNotNullValue(parDefault)) { parDefault = []; }
-
-                    break;
-
-                case 'String':
-                    parMin = null;
-                    parMax = null;
-                    if (parSuperTypeSet != null && parSuperTypeSet.MaxLength != null) {
-                        parLength = parSuperTypeSet.MaxLength;
+            // Efetua verificação para tipo Enum
+            if (Type.Name == 'Enum') {
+                if (_bt.IsObject(parRefType)) {
+                    var tArr = [];
+                    for (var it in parRefType) {
+                        tArr.push(it);
                     }
+                    parRefType = tArr;
+                }
 
-                    break;
 
-                case 'Byte':
-                case 'Short':
-                case 'Integer':
-                case 'Long':
-                case 'Float':
-                case 'Double':
-                    parLength = null;
-                    parMin = (parMin != null && parMin >= Type.Min) ? parMin : Type.Min;
-                    parMax = (parMax != null && parMax <= Type.Max) ? parMax : Type.Max;
 
-                    break;
+                // Converte todos os valores para string
+                if (_bt.IsArray(parRefType)) {
+                    var tArr = [];
+                    for (var it in parRefType) {
+                        tArr.push(parRefType[it].toString());
+                    }
+                    parRefType = tArr;
+                }
+
+
+                // Caso seja nulo ou não tenha sido possível carregar um array dos dados passados...
+                if (!_bt.IsNotNullValue(parRefType) || !_bt.IsArray(parRefType)) {
+                    isOk = false;
+                    _registerError(ErrorType.InvalidType, 'For "Enum" Is Expected Array Of Values In "parRef Type" Parameter.');
+                }
             }
 
 
-            return {
-                Name: parName,
-                Type: Type,
-                Length: parLength,
-                Min: parMin,
-                Max: parMax,
-                RefType: parRefType,
-                AllowSet: parAllowSet,
-                AllowNull: parAllowNull,
-                AllowEmpty: parAllowEmpty,
-                Unique: parUnique,
-                ReadOnly: parReadOnly,
-                Default: parDefault,
-                SuperTypeSet: parSuperTypeSet
-            };
+            if (isOk) {
+                parLength = _bt.InitiSet(parLength, null, true);
+                parMin = _bt.InitiSet(parMin, null, true);
+                parMax = _bt.InitiSet(parMax, null, true);
+
+                parRefType = _bt.InitiSet(parRefType, null, true);
+                parAllowSet = _bt.InitiSet(parAllowSet, true, true);
+                parAllowNull = _bt.InitiSet(parAllowNull, true, true);
+                parAllowEmpty = _bt.InitiSet(parAllowEmpty, false, true);
+                parUnique = _bt.InitiSet(parUnique, false, true);
+                parReadOnly = _bt.InitiSet(parReadOnly, false, true);
+                parDefault = _bt.InitiSet(parDefault, null, true);
+                parSuperTypeSet = _bt.InitiSet(parSuperTypeSet, null, true);
+
+
+
+                // Tratamentos especiais conforme o tipo...
+                switch (Type.Name) {
+                    case 'Boolean':
+                    case 'Object':
+                    case 'Object[]':
+                        parLength = null;
+                        parMin = null;
+                        parMax = null;
+                        parSuperTypeSet = null;
+
+                        if (Type.Name == 'Object[]' && !_bt.IsNotNullValue(parDefault)) { parDefault = []; }
+
+                        break;
+
+                    case 'String':
+                        parMin = null;
+                        parMax = null;
+                        if (parSuperTypeSet != null && parSuperTypeSet.MaxLength != null) {
+                            parLength = parSuperTypeSet.MaxLength;
+                        }
+
+                        break;
+
+                    case 'Enum':
+                        parMin = null;
+                        parMax = null;
+                        parSuperTypeSet = null;
+
+                        break;
+
+                    case 'Byte':
+                    case 'Short':
+                    case 'Integer':
+                    case 'Long':
+                    case 'Float':
+                    case 'Double':
+                        parLength = null;
+                        parMin = (parMin != null && parMin >= Type.Min) ? parMin : Type.Min;
+                        parMax = (parMax != null && parMax <= Type.Max) ? parMax : Type.Max;
+
+                        break;
+                }
+
+
+                return {
+                    Name: parName,
+                    Type: Type,
+                    Length: parLength,
+                    Min: parMin,
+                    Max: parMax,
+                    RefType: parRefType,
+                    AllowSet: parAllowSet,
+                    AllowNull: parAllowNull,
+                    AllowEmpty: parAllowEmpty,
+                    Unique: parUnique,
+                    ReadOnly: parReadOnly,
+                    Default: parDefault,
+                    SuperTypeSet: parSuperTypeSet
+                };
+            }
         }
 
 
@@ -763,14 +822,17 @@ CodeCraft.DataBase = new (function () {
                 val = cRule.Type.TryParse(val);
 
                 // Valida o valor conforme o tipo de dado da coluna
-                isOK = cRule.Type.Validate(val);
-                if (isOK) {
+                isOK = cRule.Type.Validate(val, cRule.RefType);
+                if (!isOK) {
+                    _registerError(ErrorType.InvalidValue, 'Invalid Value ["' + val + '"] For Column "' + cRule.Name + '".');
+                }
+                else {
                     // Formata o valor
                     val = (cRule.SuperTypeSet != null && cRule.SuperTypeSet.Format != null) ? cRule.SuperTypeSet.Format(val) : val;
 
 
                     switch (cRule.Type.Name) {
-                        // Se for uma string, verifica tamanho da mesma.                                    
+                        // Se for uma string, verifica tamanho da mesma.                                               
                         case 'String':
                             if (cRule.Length != null && val.length > cRule.Length) {
                                 isOK = false;
@@ -779,7 +841,11 @@ CodeCraft.DataBase = new (function () {
 
                             break;
 
-                        // Se for um número, verifica se o valor informado está dentro do range.                                    
+                        // Se for um enum.
+                        case 'Enum':
+                            break;
+
+                        // Se for um número, verifica se o valor informado está dentro do range.                                               
                         case 'Byte':
                         case 'Short':
                         case 'Integer':
