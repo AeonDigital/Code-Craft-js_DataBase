@@ -245,7 +245,9 @@ CodeCraft.DataBase = new (function () {
                 }
 
                 return v;
-            }
+            },
+            Min: new Date(-8640000000000000),
+            Max: new Date(8640000000000000)
         },
         {
             Name: 'String',
@@ -275,13 +277,18 @@ CodeCraft.DataBase = new (function () {
         },
         {
             Name: 'Enum',
-            Validate: function (v, arr) {
-                for (var it in arr) {
-                    if (arr[it] === v) { return true; }
+            Validate: function (v, kp) {
+                for (var it in kp) {
+                    if (it === v) { return true; }
                 }
                 return false;
             },
-            TryParse: function (v) { return v; }
+            TryParse: function (v, kp) {
+                for (var it in kp) {
+                    if (it === v || kp[it] === v) { return it; }
+                }
+                return v;
+            }
         },
         {
             Name: 'Object',
@@ -334,7 +341,7 @@ CodeCraft.DataBase = new (function () {
     * 
     * @typedef {DataBaseError}
     *
-    * @property {String}                        ErrorType                           Tipo do erro.
+    * @property {String}                        DataBaseError                       Tipo do erro.
     * @property {String}                        Message                             Mensagem de erro.
     * @property {Integer}                       ProcessId                           Id de um processo.
     */
@@ -346,75 +353,74 @@ CodeCraft.DataBase = new (function () {
     *
     * @memberof DataBase
     *
-    * @enum ErrorType
+    * @enum DataBaseError
     *
     * @type {String}
     *
     * @readonly
     */
-    var ErrorType = {
+    var DataBaseError = {
         /** 
         * Tabela já existente. 
         *
-        * @memberof ErrorType
+        * @memberof DataBaseError
         */
         TableAlreadyExists: 'TableAlreadyExists',
         /** 
         * Tabela não existe. 
         *
-        * @memberof ErrorType
+        * @memberof DataBaseError
         */
         TableDoesNotExist: 'TableDoesNotExist',
         /** 
         * Coluna já existente. 
         *
-        * @memberof ErrorType
+        * @memberof DataBaseError
         */
         ColumnAlreadyExists: 'ColumnAlreadyExists',
         /** 
         * Objeto passado é invalido ou nulo. 
         *
-        * @memberof ErrorType
+        * @memberof DataBaseError
         */
         InvalidOrNullDataObject: 'InvalidOrNullDataObject',
         /** 
         * O valor passado foi considerado inválido. 
         *
-        * @memberof ErrorType
+        * @memberof DataBaseError
         */
         InvalidValue: 'InvalidValue',
         /** 
         * Valores nulos não são aceitos. 
         *
-        * @memberof ErrorType
+        * @memberof DataBaseError
         */
         DoesNotAcceptNullValues: 'DoesNotAcceptNullValues',
         /** 
         * Tamanho máximo da string foi atinjido. 
         *
-        * @memberof ErrorType
+        * @memberof DataBaseError
         */
         MaxLengthExceeded: 'MaxLengthExceeded',
         /** 
         * Valor fora da faixa permitida. 
         *
-        * @memberof ErrorType
+        * @memberof DataBaseError
         */
         OutOfRange: 'OutOfRange',
         /** 
         * Regra de valor único foi violada. 
         *
-        * @memberof ErrorType
+        * @memberof DataBaseError
         */
         UniqueConstraintViolated: 'UniqueConstraintViolated',
         /** 
         * Tabela já existente. 
         *
-        * @memberof ErrorType
+        * @memberof DataBaseError
         */
         InvalidType: 'InvalidType'
     }
-
 
 
 
@@ -431,38 +437,19 @@ CodeCraft.DataBase = new (function () {
 
 
     /**
-    * Erros ocorridos durante o processamento.
-    *
-    * @memberof DataBase
-    *
-    * @type {DataBaseError[]}
-    */
-    var _dataErrors = [];
-
-
-
-
-
-    /**
-    * Registra uma falha no processamento.
+    * Registra uma falha no log.
     * 
     * @function _registerError
     *
     * @private
     *
-    * @param {ErrorType}                     parErrorType                           Tipo do erro.
+    * @param {DataBaseError}                 parDataBaseError                       Tipo do erro.
     * @param {String}                        parMessage                             Mensagem de erro.
     *
     * @return {Boolean}
     */
-    var _registerError = function (parErrorType, parMessage) {
-
-        _dataErrors.push({
-            ErrorType: parErrorType,
-            Message: parMessage,
-            ProcessId: _nextProcessId
-        });
-
+    var _registerError = function (parDataBaseError, parMessage) {
+        console.log('[' + _nextProcessId + '] ' + parDataBaseError + ' : ' + parMessage);
     };
 
 
@@ -591,7 +578,7 @@ CodeCraft.DataBase = new (function () {
 
         var tab = _selectTable(parTable);
         if (tab == null) {
-            _registerError(ErrorType.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
+            _registerError(DataBaseError.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
         }
         else {
             // Verifica se o nome da coluna não está repetido
@@ -607,7 +594,7 @@ CodeCraft.DataBase = new (function () {
                 r = true;
             }
             else {
-                _registerError(ErrorType.ColumnAlreadyExists, 'Column "' + parNewColumn.Name + '" Already Exist In Table "' + parTable + '".');
+                _registerError(DataBaseError.ColumnAlreadyExists, 'Column "' + parNewColumn.Name + '" Already Exist In Table "' + parTable + '".');
             }
         }
 
@@ -645,7 +632,7 @@ CodeCraft.DataBase = new (function () {
 
 
         for (var it in _dataTypes) {
-            if (_dataTypes[it].Name == parType) {
+            if (_dataTypes[it].Name == parType || _dataTypes[it] == parType) {
                 Type = _dataTypes[it];
             }
         }
@@ -653,7 +640,7 @@ CodeCraft.DataBase = new (function () {
 
 
         if (Type == null) {
-            _registerError(ErrorType.InvalidType, 'Type "' + parType + '" Is Invalid.');
+            _registerError(DataBaseError.InvalidType, 'Type "' + parType + '" Is Invalid.');
         }
         else {
             var isOk = true;
@@ -661,29 +648,21 @@ CodeCraft.DataBase = new (function () {
             // Efetua verificação para tipo Enum
             if (Type.Name == 'Enum') {
                 if (_bt.IsObject(parRefType)) {
-                    var tArr = [];
+                    var tArr = {};
                     for (var it in parRefType) {
-                        tArr.push(it);
+                        tArr[it] = parRefType[it].toString();
                     }
                     parRefType = tArr;
                 }
-
-
-
-                // Converte todos os valores para string
-                if (_bt.IsArray(parRefType)) {
-                    var tArr = [];
-                    for (var it in parRefType) {
-                        tArr.push(parRefType[it].toString());
-                    }
-                    parRefType = tArr;
+                else {
+                    parRefType = null;
                 }
 
 
-                // Caso seja nulo ou não tenha sido possível carregar um array dos dados passados...
-                if (!_bt.IsNotNullValue(parRefType) || !_bt.IsArray(parRefType)) {
+                // Caso seja nulo...
+                if (!_bt.IsNotNullValue(parRefType)) {
                     isOk = false;
-                    _registerError(ErrorType.InvalidType, 'For "Enum" Is Expected Array Of Values In "parRef Type" Parameter.');
+                    _registerError(DataBaseError.InvalidType, 'For "Enum" Is Expected a Key/Pair Object For "parRefType" Parameter.');
                 }
             }
 
@@ -734,6 +713,7 @@ CodeCraft.DataBase = new (function () {
 
                         break;
 
+                    case 'Date':
                     case 'Byte':
                     case 'Short':
                     case 'Integer':
@@ -810,7 +790,7 @@ CodeCraft.DataBase = new (function () {
             if (!_bt.IsNotNullValue(val)) {
                 if ((val == null && cRule.AllowNull == false) || (val == '' && cRule.AllowEmpty == false)) {
                     isOK = false;
-                    _registerError(ErrorType.DoesNotAcceptNullValues, 'Column "' + cRule.Name + '" Does Not Accept Null Values.');
+                    _registerError(DataBaseError.DoesNotAcceptNullValues, 'Column "' + cRule.Name + '" Does Not Accept Null Values.');
                 }
             }
             // Senão, se há um valor setado...
@@ -819,42 +799,42 @@ CodeCraft.DataBase = new (function () {
                 val = (cRule.SuperTypeSet != null && cRule.SuperTypeSet.RemoveFormat != null) ? cRule.SuperTypeSet.RemoveFormat(val) : val;
 
                 // Verifica o tipo do valor indicado
-                val = cRule.Type.TryParse(val);
+                val = cRule.Type.TryParse(val, cRule.RefType);
 
-                // Valida o valor conforme o tipo de dado da coluna
+                // Valida o valor conforme o tipo de dado da coluna,
+                // ENUNs são testados aqui
                 isOK = cRule.Type.Validate(val, cRule.RefType);
                 if (!isOK) {
-                    _registerError(ErrorType.InvalidValue, 'Invalid Value ["' + val + '"] For Column "' + cRule.Name + '".');
+                    _registerError(DataBaseError.InvalidValue, 'Invalid Value ["' + val + '"] For Column "' + cRule.Name + '".');
                 }
                 else {
-                    // Formata o valor
-                    val = (cRule.SuperTypeSet != null && cRule.SuperTypeSet.Format != null) ? cRule.SuperTypeSet.Format(val) : val;
 
 
                     switch (cRule.Type.Name) {
-                        // Se for uma string, verifica tamanho da mesma.                                               
+                        // Verificação para String                   
                         case 'String':
+                            // Havendo um formatador, executa-o
+                            val = (cRule.SuperTypeSet != null && cRule.SuperTypeSet.Format != null) ? cRule.SuperTypeSet.Format(val) : val;
+
+                            // Verifica tamanho da mesma.
                             if (cRule.Length != null && val.length > cRule.Length) {
                                 isOK = false;
-                                _registerError(ErrorType.MaxLengthExceeded, 'Max Length Exceeded For Column "' + cRule.Name + '", Value ["' + val + '"].');
+                                _registerError(DataBaseError.MaxLengthExceeded, 'Max Length Exceeded For Column "' + cRule.Name + '", Value ["' + val + '"].');
                             }
 
                             break;
 
-                        // Se for um enum.
-                        case 'Enum':
-                            break;
-
-                        // Se for um número, verifica se o valor informado está dentro do range.                                               
+                        // Verificação para Numerais e Date                  
+                        case 'Date':
                         case 'Byte':
                         case 'Short':
                         case 'Integer':
                         case 'Long':
                         case 'Float':
                         case 'Double':
-                            if (val < cRule.Type.Min || val > cRule.Type.Max) {
+                            if (val < cRule.Min || val > cRule.Max) {
                                 isOK = false;
-                                _registerError(ErrorType.OutOfRange, 'Value "' + val + '" Is Out Of Range For Column "' + cRule.Name + '[' + cRule.Type.Name + ']".');
+                                _registerError(DataBaseError.OutOfRange, 'Value "' + val + '" Is Out Of Range For Column "' + cRule.Name + '[' + cRule.Type.Name + ']".');
                             }
 
                             break;
@@ -867,7 +847,7 @@ CodeCraft.DataBase = new (function () {
                         for (var r in tab.Rows) {
                             if (tab.Rows[r][cRule.Name] == val) {
                                 isOK = false;
-                                _registerError(ErrorType.UniqueConstraintViolated, 'Unique Constraint Violated For Column "' + cRule.Name + '", Value ["' + val + '"].');
+                                _registerError(DataBaseError.UniqueConstraintViolated, 'Unique Constraint Violated For Column "' + cRule.Name + '", Value ["' + val + '"].');
                                 break;
                             }
                         }
@@ -970,27 +950,39 @@ CodeCraft.DataBase = new (function () {
 
 
         /**
-        * Resgata os erros ocorridos no último processamento feito.
+        * A partir do nome de uma tabela e de sua coluna, retorna um objeto "DataTableColumn" com as regras definidas
+        * para a coluna.
         * 
-        * @function GetLastError
+        * @function RetrieveColumnRules
         *
         * @memberof DataBase
         *
-        * @return {?DataBaseError[]}
+        * @param {String}                        parTable                            Nome da tabela.
+        * @param {String}                        parColumn                           Nome da coluna.
+        *
+        * @return {!DataTableColumn}
         */
-        GetLastError: function () {
-            var pId = _nextProcessId - 1;
-            var r = [];
+        RetrieveColumnRules: function (parTable, parColumn) {
+            var tab = _selectTable(parTable);
+            var r = null;
 
-            for (var it in _dataErrors) {
-                if (_dataErrors[it].ProcessId == pId) {
-                    r = _bt.CloneObject(_dataErrors[it]);
+            if (tab == null) {
+                console.log('Reference for invalid TableName "' + parTable + '".');
+            }
+            else {
+                for (var it in tab.Columns) {
+                    if (tab.Columns[it].Name == parColumn) {
+                        r = tab.Columns[it];
+                    }
+                }
+
+                if (!_bt.IsNotNullValue(r)) {
+                    console.log('Reference for invalid ColumnName "' + parColumn + '".');
                 }
             }
 
-            return (r.length == 0) ? null : r;
+            return r;
         },
-
 
 
 
@@ -1003,7 +995,7 @@ CodeCraft.DataBase = new (function () {
         * @memberof DataBase
         *
         * @param {String}                        parTable                            Nome da tabela de dados.
-        * @param {DataTableColumn[]}             parColumns                          Configurações para as colunas de dados.
+        * @param {DataTableColumn[]}             parConfig                           Configurações para as colunas de dados.
         *
         * @return {Boolean}
         */
@@ -1013,7 +1005,7 @@ CodeCraft.DataBase = new (function () {
 
             // Verifica existência de uma tabela com mesmo nome
             if (_selectTable(parTable) != null) {
-                _registerError(ErrorType.TableAlreadyExists, 'Table "' + parTable + '" Already Exist.');
+                _registerError(DataBaseError.TableAlreadyExists, 'Table "' + parTable + '" Already Exist.');
             }
             else {
                 if (_createTable(parTable)) {
@@ -1094,7 +1086,7 @@ CodeCraft.DataBase = new (function () {
 
             var tab = _selectTable(parTable);
             if (tab == null) {
-                _registerError(ErrorType.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
+                _registerError(DataBaseError.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
             }
             else {
                 r = tab.Rows.length;
@@ -1126,7 +1118,7 @@ CodeCraft.DataBase = new (function () {
 
             var tab = _selectTable(parTable);
             if (tab == null) {
-                _registerError(ErrorType.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
+                _registerError(DataBaseError.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
             }
             else {
                 for (var it in tab.Rows) {
@@ -1162,7 +1154,7 @@ CodeCraft.DataBase = new (function () {
 
             var tab = _selectTable(parTable);
             if (tab == null) {
-                _registerError(ErrorType.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
+                _registerError(DataBaseError.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
             }
             else {
 
@@ -1290,14 +1282,14 @@ CodeCraft.DataBase = new (function () {
 
             // Apenas se há um Id definido
             if (rowData['Id'] === undefined) {
-                _registerError(ErrorType.InvalidOrNullDataObject, 'Invalid Or Null DataObject.');
+                _registerError(DataBaseError.InvalidOrNullDataObject, 'Invalid Or Null DataObject.');
             }
             else {
                 var Id = rowData['Id'];
 
                 var tab = _selectTable(parTable);
                 if (tab == null) {
-                    _registerError(ErrorType.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
+                    _registerError(DataBaseError.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
                 }
                 else {
 
@@ -1444,7 +1436,7 @@ CodeCraft.DataBase = new (function () {
                 }
             }
             else {
-                _registerError(ErrorType.InvalidOrNullDataObject, 'Invalid Or Null DataObject.');
+                _registerError(DataBaseError.InvalidOrNullDataObject, 'Invalid Or Null DataObject.');
             }
 
             return o;
@@ -1471,7 +1463,7 @@ CodeCraft.DataBase = new (function () {
 
             var tab = _selectTable(parTable);
             if (tab == null) {
-                _registerError(ErrorType.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
+                _registerError(DataBaseError.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
             }
             else {
                 var i = -1;
@@ -1514,7 +1506,7 @@ CodeCraft.DataBase = new (function () {
 
             var tab = _selectTable(parTable);
             if (tab == null) {
-                _registerError(ErrorType.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
+                _registerError(DataBaseError.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
             }
             else {
                 for (var it in tab.Rows) {
@@ -1563,7 +1555,7 @@ CodeCraft.DataBase = new (function () {
 
             var tab = _selectTable(parTable);
             if (tab == null) {
-                _registerError(ErrorType.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
+                _registerError(DataBaseError.TableDoesNotExist, 'Table "' + parTable + '" Does Not Exist.');
             }
             else {
                 // Resgata referência das tabelas atualmente válidas
@@ -1669,14 +1661,6 @@ CodeCraft.DataBase = new (function () {
             return o;
         }
     };
-
-
-
-
-
-
-
-
 
 
     return public;
