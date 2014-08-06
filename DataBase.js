@@ -37,6 +37,7 @@ if(typeof(CodeCraft) === 'function') { CodeCraft = new CodeCraft(); };
 */
 CodeCraft.DataBase = new (function () {
     var _bt = CodeCraft.BasicTools;
+    var _ct = CodeCraft.ComplexType;
 
 
 
@@ -51,63 +52,9 @@ CodeCraft.DataBase = new (function () {
     * @typedef {DataTable}
     *
     * @property {String}                        Name                                Nome da tabela de dados.
-    * @property {DataTableColumn[]}             Columns                             Colunas de dados da tabela.
+    * @property {ComplexType[]}                 Columns                             Coleção das regras de cada coluna da tabela de dados.
     * @property {Object[]}                      Rows                                Representa a coleção de dados da tabela.
     * @property {Integer}                       NextId                              Valor para o Id do próximo objeto inserido.
-    */
-
-
-
-    /**
-    * Objeto de definição de tipos de dados especiais.
-    *
-    * @typedef DataDefinition
-    *
-    * @global
-    *
-    * @property {?String}                       Mask                                    Mascara do formato que se quer representar.
-    * @property {RegExp}                        RegExp                                  Objeto "RegExp" responsável por validar o formato indicado.
-    * @property {?Integer}                      MinLength = null                        Número mínimo de caracteres aceitos para descrever o formato.
-    * @property {?Integer}                      MaxLength = null                        Número máximo de caracteres aceitos para descrever o formato.
-    * @property {Function}                      Check                                   Função validadora do tipo de dado.
-    * @property {Function}                      Format                                  Função formatadora do tipo.
-    * @property {?Function}                     RemoveFormat                            Função para remover formato inserido.
-    */
-
-
-
-    /**
-    * Representa uma coluna de dados da tabela.
-    * 
-    * @typedef {DataTableColumn}
-    *
-    * @property {String}                        Name                                Nome da coluna.
-    * @property {DataType}                      Type                                Tipo de dado aceito.
-    * @property {Integer}                       Length = null                       Tamanho máximo de um campo do tipo String, Use "null" para um campo de tamanho ilimitado.
-    * @property {Integer}                       Min = null                          Menor valor numérico que o campo pode ter.
-    * @property {Integer}                       Max = null                          Maior valor numérico que o campo pode ter.
-    * @property {String}                        RefType = null                      Quando a coluna é uma referência a objetos de outras tabelas, aqui, RefType é o nome da tabela.
-    * @property {Boolean}                       AllowSet = true                     Indica que o valor pode ser setado pelo usuário [senão é o próprio objeto quem define seu valor].
-    * @property {Boolean}                       AllowNull = true                    Indica se permite que o valor seja nulo [null].
-    * @property {Boolean}                       AllowEmpty = false                  Indica se permite que o valor seja vazio [''].
-    * @property {Boolean}                       Unique = false                      Indica que o valor desta coluna não pode ser repetido.
-    * @property {Boolean}                       ReadOnly = false                    Indica que o valor só será setado 1 vez.
-    * @property {String}                        Default = null                      Valor padrão para a propriedade.
-    * @property {DataDefinition}                SuperTypeSet = null                 Objeto de definição de um tipo especial de formatação.
-    */
-
-
-
-    /**
-    * Tipo de dados.
-    * 
-    * @deftype {DataType}
-    *
-    * @property {String}                        Name                                Nome do tipo.
-    * @property {Function}                      Validate                            Função que efetua a validação do tipo.
-    * @property {Function}                      TryParse                            Função que tenta converter o valor original para este tipo.
-    * @property {Integer}                       Min                                 Valor mínimo que pode ser assumido por este tipo.
-    * @property {Integer}                       Max                                 Valor máximo que pode ser assumido por este tipo.
     */
 
 
@@ -155,6 +102,8 @@ CodeCraft.DataBase = new (function () {
 
 
 
+
+
     /*
     * PROPRIEDADES PRIVADAS
     */
@@ -165,151 +114,11 @@ CodeCraft.DataBase = new (function () {
     *
     * @memberof DataBase
     *
+    * @private
+    *
     * @type {DataTable[]}
     */
     var _dataTables = [];
-
-
-
-    /**
-    * Coleção de tipos de dados.
-    *
-    * @type {DataType[]}
-    */
-    var _dataTypes = [
-        {
-            Name: 'Boolean',
-            Validate: function (v) { return (typeof (v) === 'boolean') ? true : false; },
-            TryParse: function (v) {
-                if (typeof (v) === 'boolean') { return v; }
-                else if (typeof (v) === 'string') {
-                    switch (o.toLowerCase()) {
-                        case 'true': case 'yes': case '1': case 'on': return true; break;
-                        case 'false': case 'no': case '0': case 'off': return false; break;
-                    }
-                }
-
-                return v;
-            }
-        },
-        {
-            Name: 'Byte',           // INTEGER 8 BITS
-            Validate: function (v) { return _bt.IsInteger(v); },
-            TryParse: function (v) { return _bt.TryParse.ToInteger(v); },
-            Min: -128,
-            Max: 127
-        },
-        {
-            Name: 'Short',          // INTEGER 16 BITS
-            Validate: function (v) { return _bt.IsInteger(v); },
-            TryParse: function (v) { return _bt.TryParse.ToInteger(v); },
-            Min: -32768,
-            Max: 32767
-        },
-        {
-            Name: 'Integer',        // INTEGER 32 BITS
-            Validate: function (v) { return _bt.IsInteger(v); },
-            TryParse: function (v) { return _bt.TryParse.ToInteger(v); },
-            Min: -2147483648,
-            Max: 2147483647
-        },
-        {
-            Name: 'Long',           // INTEGER 64 BITS
-            Validate: function (v) { return _bt.IsInteger(v); },
-            TryParse: function (v) { return _bt.TryParse.ToInteger(v); },
-            Min: -9223372036854775296, // -9223372036854775808
-            Max: 9223372036854775296   //  9223372036854775807
-        },
-        {
-            Name: 'Float',          // FLOAT 32 BITS
-            Validate: function (v) { return _bt.IsNumber(v); },
-            TryParse: function (v) { return _bt.TryParse.ToFloat(v); },
-            Min: -2147483648,
-            Max: 2147483647
-        },
-        {
-            Name: 'Double',         // FLOAT 64 BITS
-            Validate: function (v) { return _isNumber(v); },
-            TryParse: function (v) { return _bt.TryParse.ToFloat(v); },
-            Min: -9223372036854775296, // -9223372036854775808
-            Max: 9223372036854775296   //  9223372036854775807
-        },
-        {
-            Name: 'Date',
-            Validate: function (v) { return (Object.prototype.toString.call(v) === '[object Date]') ? true : false; },
-            TryParse: function (v) {
-                if (Object.prototype.toString.call(v) === '[object Date]') { return v; }
-                else if (typeof (v) === 'string') {
-                    var d = new Date(v);
-                    if (d && d.getFullYear() > 0) { return d; }
-                }
-
-                return v;
-            },
-            Min: new Date(-8640000000000000),
-            Max: new Date(8640000000000000)
-        },
-        {
-            Name: 'String',
-            Validate: function (v) { return (typeof (v) === 'string') ? true : false; },
-            TryParse: function (v) {
-                if (typeof (v) === 'string') { return v; }
-                else if (Object.prototype.toString.call(v) === '[object Date]') {
-                    var y = v.getFullYear().toString();
-                    var M = (v.getMonth() + 1).toString();
-                    var d = v.getDate().toString();
-                    var H = v.getHours().toString();
-                    var m = v.getMinutes().toString();
-                    var s = v.getSeconds().toString();
-
-                    // Adiciona 2 digitos a todas partes
-                    M = (M.length == 1) ? '0' + M : M;
-                    d = (d.length == 1) ? '0' + d : d;
-                    H = (H.length == 1) ? '0' + H : H;
-                    m = (m.length == 1) ? '0' + m : m;
-                    s = (s.length == 1) ? '0' + s : s;
-
-                    v = y + '-' + M + '-' + d + ' ' + H + ':' + m + ':' + s;
-                }
-
-                return v.toString();
-            }
-        },
-        {
-            Name: 'Enum',
-            Validate: function (v, kp) {
-                for (var it in kp) {
-                    if (it === v) { return true; }
-                }
-                return false;
-            },
-            TryParse: function (v, kp) {
-                for (var it in kp) {
-                    if (it === v || kp[it] === v) { return it; }
-                }
-                return v;
-            }
-        },
-        {
-            Name: 'Object',
-            Validate: function (v) { return (typeof (v) === 'object') ? true : false; },
-            TryParse: function (v) { return v; }
-        },
-        {
-            Name: 'Object[]',
-            Validate: function (v) {
-                var r = true;
-                for (var it in v) {
-                    if (typeof (v[it]) !== 'object') {
-                        r = false;
-                        break;
-                    }
-                }
-                return r;
-            },
-            TryParse: function (v) { return v; }
-        }
-    ];
 
 
 
@@ -424,16 +233,17 @@ CodeCraft.DataBase = new (function () {
 
 
 
-
-
     /**
     * ID do próximo processo de erro.
     *
     * @memberof DataBase
     *
+    * @private
+    *
     * @type {Integer}
     */
     var _nextProcessId = 0;
+
 
 
     /**
@@ -471,9 +281,8 @@ CodeCraft.DataBase = new (function () {
 
 
 
-
     /*
-    * MÉTODOS GERADORES DE OBJETOS
+    * MÉTODOS PRIVADOS
     */
 
 
@@ -499,7 +308,7 @@ CodeCraft.DataBase = new (function () {
         });
 
 
-        var cId = _createDataTableColumn('Id', 'Integer', null, null, null, null, false, false, false, true, true, null, null, null);
+        var cId = _ct.CreateNewType('Id', 'Integer', null, null, null, null, false, false, false, true, true, null, null, null);
         if (cId != null) {
             _alterTableSetColumn(parTable, cId);
             return true;
@@ -604,267 +413,6 @@ CodeCraft.DataBase = new (function () {
 
 
     /**
-    * Cria um novo objeto "DataTableColumn".
-    * 
-    * @function _createDataTableColumn
-    *
-    * @private
-    *
-    * @param {String}                        parName                             Nome da coluna.
-    * @param {DataType}                      parType                             Tipo de dado aceito.
-    * @param {Integer}                       [parLength = null]                  Tamanho máximo para um campo do tipo String.
-    * @param {Integer}                       [parMin = null]                     Valor mínimo aceito para um campo numérico.
-    * @param {Integer}                       [parMax = null]                     Valor máximo aceito para um campo numérico.
-    * @param {String}                        [parRefType = null]                 Nome da tabela de referência.
-    * @param {Boolean}                       [parAllowSet = true]                Indica que o valor pode ser setado pelo usuário.
-    * @param {Boolean}                       [parAllowNull = true]               Indica se permite que o valor seja nulo [null].
-    * @param {Boolean}                       [parAllowEmpty = false]             Indica se permite que o valor seja vazio [''].
-    * @param {Boolean}                       [parUnique = false]                 Indica que o valor desta coluna não pode ser repetido.
-    * @param {Boolean}                       [parReadOnly = false]               Indica que o valor só será setado 1 vez.
-    * @param {String}                        [parDefault = null]                 Valor padrão para a propriedade.
-    * @param {DataDefinition}                [parSuperTypeSet = null]            Objeto de definição de um tipo especial de formatação.
-    *
-    * @return {!DataTableColumn}
-    */
-    var _createDataTableColumn = function (parName, parType, parLength, parMin, parMax, parRefType,
-                                        parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parSuperTypeSet) {
-        var Type = null;
-
-
-        for (var it in _dataTypes) {
-            if (_dataTypes[it].Name == parType || _dataTypes[it] == parType) {
-                Type = _dataTypes[it];
-            }
-        }
-
-
-
-        if (Type == null) {
-            _registerError(DataBaseError.InvalidType, 'Type "' + parType + '" Is Invalid.');
-        }
-        else {
-            var isOk = true;
-
-            // Efetua verificação para tipo Enum
-            if (Type.Name == 'Enum') {
-                if (_bt.IsObject(parRefType)) {
-                    var tArr = {};
-                    for (var it in parRefType) {
-                        tArr[it] = parRefType[it].toString();
-                    }
-                    parRefType = tArr;
-                }
-                else {
-                    parRefType = null;
-                }
-
-
-                // Caso seja nulo...
-                if (!_bt.IsNotNullValue(parRefType)) {
-                    isOk = false;
-                    _registerError(DataBaseError.InvalidType, 'For "Enum" Is Expected a Key/Pair Object For "parRefType" Parameter.');
-                }
-            }
-
-
-            if (isOk) {
-                parLength = _bt.InitiSet(parLength, null, true);
-                parMin = _bt.InitiSet(parMin, null, true);
-                parMax = _bt.InitiSet(parMax, null, true);
-
-                parRefType = _bt.InitiSet(parRefType, null, true);
-                parAllowSet = _bt.InitiSet(parAllowSet, true, true);
-                parAllowNull = _bt.InitiSet(parAllowNull, true, true);
-                parAllowEmpty = _bt.InitiSet(parAllowEmpty, false, true);
-                parUnique = _bt.InitiSet(parUnique, false, true);
-                parReadOnly = _bt.InitiSet(parReadOnly, false, true);
-                parDefault = _bt.InitiSet(parDefault, null, true);
-                parSuperTypeSet = _bt.InitiSet(parSuperTypeSet, null, true);
-
-
-
-                // Tratamentos especiais conforme o tipo...
-                switch (Type.Name) {
-                    case 'Boolean':
-                    case 'Object':
-                    case 'Object[]':
-                        parLength = null;
-                        parMin = null;
-                        parMax = null;
-                        parSuperTypeSet = null;
-
-                        if (Type.Name == 'Object[]' && !_bt.IsNotNullValue(parDefault)) { parDefault = []; }
-
-                        break;
-
-                    case 'String':
-                        parMin = null;
-                        parMax = null;
-                        if (parSuperTypeSet != null && parSuperTypeSet.MaxLength != null) {
-                            parLength = parSuperTypeSet.MaxLength;
-                        }
-
-                        break;
-
-                    case 'Enum':
-                        parMin = null;
-                        parMax = null;
-                        parSuperTypeSet = null;
-
-                        break;
-
-                    case 'Date':
-                    case 'Byte':
-                    case 'Short':
-                    case 'Integer':
-                    case 'Long':
-                    case 'Float':
-                    case 'Double':
-                        parLength = null;
-                        parMin = (parMin != null && parMin >= Type.Min) ? parMin : Type.Min;
-                        parMax = (parMax != null && parMax <= Type.Max) ? parMax : Type.Max;
-
-                        break;
-                }
-
-
-                return {
-                    Name: parName,
-                    Type: Type,
-                    Length: parLength,
-                    Min: parMin,
-                    Max: parMax,
-                    RefType: parRefType,
-                    AllowSet: parAllowSet,
-                    AllowNull: parAllowNull,
-                    AllowEmpty: parAllowEmpty,
-                    Unique: parUnique,
-                    ReadOnly: parReadOnly,
-                    Default: parDefault,
-                    SuperTypeSet: parSuperTypeSet
-                };
-            }
-        }
-
-
-        return null;
-    };
-
-
-
-    /**
-    * Verifica se o valor informado é compatível com as regras de configuração para a coluna.
-    * Retorna "undefined" caso o valor seja inválido, ou retorna o próprio valor devidamente formatado.
-    * 
-    * @function _checkColRules
-    *
-    * @private
-    *
-    * @param {Object}                        val                                 Valor que será testado.
-    * @param {DataTableColumn}               cRule                               Regras para a coluna de dados.
-    * @param {DataTable}                     tab                                 Tabela de dados dona da coluna que será verificada.
-    *
-    * @return {[undefined|Object]}
-    */
-    var _checkColRules = function (val, cRule, tab) {
-        isOK = true;
-
-
-        // Se não é permitido o set desta coluna...
-        if (cRule.AllowSet) {
-
-
-
-            // Corrige valores nulos para quando há um valor padrão.
-            if (val == undefined || val == null) {
-                val = cRule.Default;
-
-                // Verifica tratamento especial para formato Date
-                if (cRule.Type.Name === 'Date' && cRule.Default === 'new') {
-                    val = new Date();
-                }
-            }
-
-
-            // Se for um valor considerado vazio, nulo ou indefinido
-            if (!_bt.IsNotNullValue(val)) {
-                if ((val == null && cRule.AllowNull == false) || (val == '' && cRule.AllowEmpty == false)) {
-                    isOK = false;
-                    _registerError(DataBaseError.DoesNotAcceptNullValues, 'Column "' + cRule.Name + '" Does Not Accept Null Values.');
-                }
-            }
-            // Senão, se há um valor setado...
-            else {
-                // Se há um removedor de formado disponível, usa-o antes de qualquer validação.
-                val = (cRule.SuperTypeSet != null && cRule.SuperTypeSet.RemoveFormat != null) ? cRule.SuperTypeSet.RemoveFormat(val) : val;
-
-                // Verifica o tipo do valor indicado
-                val = cRule.Type.TryParse(val, cRule.RefType);
-
-                // Valida o valor conforme o tipo de dado da coluna,
-                // ENUNs são testados aqui
-                isOK = cRule.Type.Validate(val, cRule.RefType);
-                if (!isOK) {
-                    _registerError(DataBaseError.InvalidValue, 'Invalid Value ["' + val + '"] For Column "' + cRule.Name + '".');
-                }
-                else {
-
-
-                    switch (cRule.Type.Name) {
-                        // Verificação para String                   
-                        case 'String':
-                            // Havendo um formatador, executa-o
-                            val = (cRule.SuperTypeSet != null && cRule.SuperTypeSet.Format != null) ? cRule.SuperTypeSet.Format(val) : val;
-
-                            // Verifica tamanho da mesma.
-                            if (cRule.Length != null && val.length > cRule.Length) {
-                                isOK = false;
-                                _registerError(DataBaseError.MaxLengthExceeded, 'Max Length Exceeded For Column "' + cRule.Name + '", Value ["' + val + '"].');
-                            }
-
-                            break;
-
-                        // Verificação para Numerais e Date                  
-                        case 'Date':
-                        case 'Byte':
-                        case 'Short':
-                        case 'Integer':
-                        case 'Long':
-                        case 'Float':
-                        case 'Double':
-                            if (val < cRule.Min || val > cRule.Max) {
-                                isOK = false;
-                                _registerError(DataBaseError.OutOfRange, 'Value "' + val + '" Is Out Of Range For Column "' + cRule.Name + '[' + cRule.Type.Name + ']".');
-                            }
-
-                            break;
-                    }
-
-
-
-                    // Verifica regra de valor único
-                    if (isOK && cRule.Unique) {
-                        for (var r in tab.Rows) {
-                            if (tab.Rows[r][cRule.Name] == val) {
-                                isOK = false;
-                                _registerError(DataBaseError.UniqueConstraintViolated, 'Unique Constraint Violated For Column "' + cRule.Name + '", Value ["' + val + '"].');
-                                break;
-                            }
-                        }
-                    }
-
-                }
-
-            }
-        }
-
-
-        return (isOK) ? val : undefined;
-    };
-
-
-
-    /**
     * Corrige sets de um objeto "QueryFilter".
     * 
     * @function _ajustQueryFilter
@@ -950,19 +498,18 @@ CodeCraft.DataBase = new (function () {
 
 
         /**
-        * A partir do nome de uma tabela e de sua coluna, retorna um objeto "DataTableColumn" com as regras definidas
-        * para a coluna.
+        * A partir do nome de uma tabela e de sua coluna, retorna seu objeto "ComplexType".
         * 
-        * @function RetrieveColumnRules
+        * @function RetrieveComplexType
         *
         * @memberof DataBase
         *
         * @param {String}                        parTable                            Nome da tabela.
         * @param {String}                        parColumn                           Nome da coluna.
         *
-        * @return {!DataTableColumn}
+        * @return {!ComplexType}
         */
-        RetrieveColumnRules: function (parTable, parColumn) {
+        RetrieveComplexType: function (parTable, parColumn) {
             var tab = _selectTable(parTable);
             var r = null;
 
@@ -1013,8 +560,8 @@ CodeCraft.DataBase = new (function () {
 
                     for (var it in parConfig) {
                         var c = parConfig[it];
-                        var nCol = _createDataTableColumn(c.Name, c.Type, c.Length, c.Min, c.Max, c.RefType,
-                                                          c.AllowSet, c.AllowNull, c.AllowEmpty, c.Unique, c.ReadOnly, c.Default, c.SuperTypeSet);
+                        var nCol = _ct.CreateNewType(c.Name, c.Type, c.Length, c.Min, c.Max, c.RefType,
+                                                          c.AllowSet, c.AllowNull, c.AllowEmpty, c.Unique, c.ReadOnly, c.Default, c.FormatSet);
 
                         if (nCol != null) {
                             r = _alterTableSetColumn(parTable, nCol);
@@ -1033,38 +580,6 @@ CodeCraft.DataBase = new (function () {
             return r;
         },
 
-
-
-
-
-        /**
-        * Cria um novo objeto "DataTableColumn".
-        * 
-        * @function CreateDataTableColumn
-        *
-        * @memberof DataBase
-        *
-        * @param {String}                        parName                             Nome da coluna.
-        * @param {DataType}                      parType                             Tipo de dado aceito.
-        * @param {Integer}                       [parLength = null]                  Tamanho máximo para um campo do tipo String.
-        * @param {Integer}                       [parMin = null]                     Valor mínimo aceito para um campo numérico.
-        * @param {Integer}                       [parMax = null]                     Valor máximo aceito para um campo numérico.
-        * @param {String}                        [parRefType = null]                 Nome da tabela de referência.
-        * @param {Boolean}                       [parAllowSet = true]                Indica que o valor pode ser setado pelo usuário.
-        * @param {Boolean}                       [parAllowNull = true]               Indica se permite que o valor seja nulo [null].
-        * @param {Boolean}                       [parAllowEmpty = false]             Indica se permite que o valor seja vazio [''].
-        * @param {Boolean}                       [parUnique = false]                 Indica que o valor desta coluna não pode ser repetido.
-        * @param {Boolean}                       [parReadOnly = false]               Indica que o valor só será setado 1 vez.
-        * @param {String}                        [parDefault = null]                 Valor padrão para a propriedade.
-        * @param {DataDefinition}                [parSuperTypeSet = null]            Objeto de definição de um tipo especial de formatação.
-        *
-        * @return {!DataTableColumn}
-        */
-        CreateDataTableColumn: function (parName, parType, parLength, parMin, parMax, parRefType,
-                                            parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parSuperTypeSet) {
-            return _createDataTableColumn(parName, parType, parLength, parMin, parMax, parRefType,
-                                            parAllowSet, parAllowNull, parAllowEmpty, parUnique, parReadOnly, parDefault, parSuperTypeSet);
-        },
 
 
 
@@ -1146,11 +661,13 @@ CodeCraft.DataBase = new (function () {
         *
         * @param {String}                       parTable                        Nome da tabela de dados.
         * @param {JSON}                         rowData                         Dados que serão adicionados.
+        * @paran {Boolean}                      [getNew = false]                Quando true, retornará o novo objeto persistido ou False caso tenha ocorrido algum erro.
         *
-        * @return {Boolean}
+        * @return {Boolean | [Object | False]}
         */
-        InsertInto: function (parTable, rowData) {
+        InsertInto: function (parTable, rowData, getNew) {
             var r = false;
+            getNew = (getNew === undefined) ? false : getNew;
 
             var tab = _selectTable(parTable);
             if (tab == null) {
@@ -1183,13 +700,18 @@ CodeCraft.DataBase = new (function () {
                             // Conforme a natureza da coluna de dados...
                             switch (cRule.Type.Name) {
                                 case 'Object':
-                                    val = CodeCraft.DataBase.SaveOrUpdate(cRule.RefType, val);
-                                    _nextProcessId--;
+                                    if (_bt.IsNotNullValue(val)) {
+                                        val = CodeCraft.DataBase.SaveOrUpdate(cRule.RefType, val);
+                                        _nextProcessId--;
+                                    }
+                                    else {
+                                        val = null;
+                                    }
+
                                     break;
 
                                 case 'Object[]':
-
-                                    if (typeof (val) !== '[object Array]') {
+                                    if (typeof (val) !== '[object Array]' || !_bt.IsNotNullValue(val)) {
                                         val = [];
                                     }
                                     else {
@@ -1224,7 +746,19 @@ CodeCraft.DataBase = new (function () {
                                     break;
 
                                 default:
-                                    val = _checkColRules(val, cRule, tab);
+                                    val = cRule.CheckValue(val);
+
+                                    // Verifica regra de valor único
+                                    if (cRule.Unique && _bt.IsNotNullValue(val)) {
+                                        for (var ri in tab.Rows) {
+                                            if (tab.Rows[ri][cRule.Name] == val) {
+                                                _registerError(DataBaseError.UniqueConstraintViolated, 'Unique Constraint Violated For Column "' + cRule.Name + '", Value ["' + val + '"].');
+                                                val = undefined;
+                                                break;
+                                            }
+                                        }
+                                    }
+
                                     break;
                             }
 
@@ -1247,16 +781,19 @@ CodeCraft.DataBase = new (function () {
                     tab.Rows.push(newRow);
                     tab.NextId++;
 
-
                     rowData['Id'] = newRow['Id'];
-
                     r = true;
                 }
             }
 
 
             _nextProcessId++;
-            return r;
+            if (getNew && r === true) {
+                return CodeCraft.DataBase.SelectObject(parTable, _retrieveLastId(parTable));
+            }
+            else {
+                return r;
+            }
         },
 
 
@@ -1272,12 +809,13 @@ CodeCraft.DataBase = new (function () {
         *
         * @param {String}                       parTable                        Nome da tabela de dados.
         * @param {JSON}                         rowData                         Dados que serão atualizados.
+        * @paran {Boolean}                      [getNew = false]                Quando true, retornará o novo objeto persistido ou False caso tenha ocorrido algum erro.
         *
-        * @return {Boolean}
+        * @return {Boolean | [Object | False]}
         */
-        UpdateSet: function (parTable, rowData) {
-
+        UpdateSet: function (parTable, rowData, getNew) {
             var r = false;
+            getNew = (getNew === undefined) ? false : getNew;
 
 
             // Apenas se há um Id definido
@@ -1319,13 +857,18 @@ CodeCraft.DataBase = new (function () {
                                 // Conforme a natureza da coluna de dados...
                                 switch (cRule.Type.Name) {
                                     case 'Object':
-                                        val = CodeCraft.DataBase.SaveOrUpdate(cRule.RefType, val);
-                                        _nextProcessId--;
+                                        if (_bt.IsNotNullValue(val)) {
+                                            val = CodeCraft.DataBase.SaveOrUpdate(cRule.RefType, val);
+                                            _nextProcessId--;
+                                        }
+                                        else {
+                                            val = null;
+                                        }
+
                                         break;
 
                                     case 'Object[]':
-
-                                        if (typeof (val) !== '[object Array]') {
+                                        if (typeof (val) !== '[object Array]' || !_bt.IsNotNullValue(val)) {
                                             val = [];
                                         }
                                         else {
@@ -1360,7 +903,18 @@ CodeCraft.DataBase = new (function () {
                                         break;
 
                                     default:
-                                        val = _checkColRules(val, cRule, tab);
+                                        val = cRule.CheckValue(val);
+
+                                        // Verifica regra de valor único
+                                        if (cRule.Unique && _bt.IsNotNullValue(val)) {
+                                            for (var ri in tab.Rows) {
+                                                if (tab.Rows[ri][cRule.Name] == val) {
+                                                    _registerError(DataBaseError.UniqueConstraintViolated, 'Unique Constraint Violated For Column "' + cRule.Name + '", Value ["' + val + '"].');
+                                                    val = undefined;
+                                                    break;
+                                                }
+                                            }
+                                        }
                                         break;
                                 }
 
@@ -1395,7 +949,12 @@ CodeCraft.DataBase = new (function () {
 
 
             _nextProcessId++;
-            return r;
+            if (getNew && r === true) {
+                return CodeCraft.DataBase.SelectObject(parTable, rowData['Id']);
+            }
+            else {
+                return r;
+            }
         },
 
 

@@ -24,9 +24,8 @@ mesmos.
 
 * `ResetDataBase`               : Reinicia o objeto eliminando totalmente as tabelas e seus dados.
 * `RetrieveDataBase`            : Retorna um objeto clone do banco de dados atual.
-* `RetrieveColumnRules`         : Retorna as regras de formatação de uma coluna de dados.
+* `RetrieveComplexType`         : Retorna as regras de formatação de uma coluna de dados.
 * `CreateTable`                 : Gera um novo objeto simulando uma tabela.
-* `CreateDataTableColumn`       : Cria um novo objeto "DataTableColumn".
 * `Count`                       : Conta quantos registros existem em uma determinada tabela.
 * `HasObject`                   : Indica se o objeto existe ou não na tabela de dados indicada a partir de seu Id.
 * `InsertInto`                  : Insere uma nova linha de dados em uma tabela.
@@ -35,19 +34,6 @@ mesmos.
 * `DeleteFrom`                  : Remove uma linha de dados de uma tabela.
 * `SelectObject`                : Seleciona e retorn uma linha de dados da tabela alvo.
 * `SelectObjectList`            : Seleciona várias linhas de dados da tabela alvo.
-
-
-
-### Objeto FormConnector
-
-Provê uma conexão de campos de formulário com as colunas de dados definidas utilizando assim
-suas regras de validação e formatação.
-
-
-* `ValidateErrorLabels`         : Legendas para mensagens de erro amigáveis.
-* `ConnectFields`               : Conecta os campos configurados.
-* `CheckAndFormatField`         : Efetua a validação do campo conforme a coluna de dados a qual ele está conectado.
-* `CheckAllFormFields`          : Valida todos os campos conectados do formulário alvo.
 
 
 
