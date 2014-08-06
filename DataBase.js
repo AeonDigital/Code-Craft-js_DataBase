@@ -307,14 +307,7 @@ CodeCraft.DataBase = new (function () {
             NextId: 1
         });
 
-
-        var cId = _ct.CreateNewType('Id', 'Integer', null, null, null, null, false, false, false, true, true, null, null, null);
-        if (cId != null) {
-            _alterTableSetColumn(parTable, cId);
-            return true;
-        }
-
-        return false;
+        return true;
     };
 
 
@@ -377,7 +370,7 @@ CodeCraft.DataBase = new (function () {
     * @private
     *
     * @param {String}                        parTable                            Nome da tabela de dados.
-    * @param {DataTableColumn}               parNewColumn                        Objeto de configuração da nova coluna de dados.
+    * @param {ComplexType}                   parNewColumn                        Objeto de configuração da nova coluna de dados.
     *
     * @return {Boolean}
     */
@@ -542,7 +535,7 @@ CodeCraft.DataBase = new (function () {
         * @memberof DataBase
         *
         * @param {String}                        parTable                            Nome da tabela de dados.
-        * @param {DataTableColumn[]}             parConfig                           Configurações para as colunas de dados.
+        * @param {ComplexType[]}                 parConfig                           Configurações para as colunas de dados.
         *
         * @return {Boolean}
         */
@@ -557,19 +550,48 @@ CodeCraft.DataBase = new (function () {
             else {
                 if (_createTable(parTable)) {
                     r = true;
+                    var newCols = [];
 
-                    for (var it in parConfig) {
-                        var c = parConfig[it];
-                        var nCol = _ct.CreateNewType(c.Name, c.Type, c.Length, c.Min, c.Max, c.RefType,
-                                                          c.AllowSet, c.AllowNull, c.AllowEmpty, c.Unique, c.ReadOnly, c.Default, c.FormatSet);
+                    // Gera a coluna de ID da tabela
+                    var cId = _ct.CreateNewType('Id', 'Integer', null, null, null, null,
+                                                false, false, false, true, true, null, null, null);
 
-                        if (nCol != null) {
-                            r = _alterTableSetColumn(parTable, nCol);
-                            if (!r) { break; }
+
+                    // Se foi gerada com sucesso...
+                    if (cId != null) {
+                        newCols.push(cId);
+
+
+                        // Gera os objetos que representam as regras para as colunas de dados da nova tabela.
+                        for (var it in parConfig) {
+                            var c = parConfig[it];
+                            var nCol = _ct.CreateNewType(c.Name, c.Type, c.Length, c.Min, c.Max, c.RefType,
+                                                     c.AllowSet, c.AllowNull, c.AllowEmpty, c.Unique, c.ReadOnly, c.Default, c.FormatSet);
+
+                            if (nCol != null) {
+                                newCols.push(nCol);
+                            }
+                            else {
+                                r = false;
+                                break;
+                            }
                         }
-                        else {
-                            break;
+
+
+                        // Adiciona as regras criadas para a tabela de dados alvo
+                        if (r) {
+                            for (var it in newCols) {
+                                var nCol = newCols[it];
+                                r = _alterTableSetColumn(parTable, nCol);
+                                if (!r) { break; }
+                            }
+
+                            // Efetua integração com a biblioteca "Forms"
+                            if (CodeCraft.Forms !== undefined) {
+                                CodeCraft.Forms.AddNewCollection(parTable, newCols);
+                            }
                         }
+
 
                     }
 
