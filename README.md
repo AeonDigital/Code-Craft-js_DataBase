@@ -36,6 +36,13 @@ mesmos.
 * `SelectObjectList`            : Seleciona várias linhas de dados da tabela alvo.
 
 
+#### Dependências
+
+As seguintes bibliotecas são necessárias :
+
+* [ComplexType](http://github.com/AeonDigital/Code-Craft-js_ComplexType)
+* [StringExtension](http://github.com/AeonDigital/Code-Craft-js_StringExtension) - Opcional, porém, recomendável.
+
 
 **Importante**
 
