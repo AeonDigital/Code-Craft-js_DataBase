@@ -5,10 +5,11 @@
 * @module DataBase
 * @file JS DataBase.
 *
+* @requires BasicTools
+* @requires ComplexType
+*
 * @author Rianna Cantarelli <rianna.aeon@gmail.com>
 */
-
-
 
 
 
@@ -18,7 +19,6 @@
 // Caso não exista, inicia objeto CodeCraft
 var CodeCraft = (CodeCraft || function () { });
 if(typeof(CodeCraft) === 'function') { CodeCraft = new CodeCraft(); };
-
 
 
 
