@@ -10,7 +10,7 @@
 *
 * @author Rianna Cantarelli <rianna.aeon@gmail.com>
 */
-
+'use strict';
 
 
 
@@ -457,7 +457,7 @@ CodeCraft.DataBase = new (function () {
     /**
     * OBJETO PÚBLICO QUE SERÁ EXPOSTO.
     */
-    var public = this.Control = {
+    var _public = this.Control = {
         /**
         * Reinicia o objeto eliminando totalmente as tabelas e seus dados.
         * 
@@ -1244,5 +1244,5 @@ CodeCraft.DataBase = new (function () {
     };
 
 
-    return public;
+    return _public;
 });
