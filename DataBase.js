@@ -733,7 +733,7 @@ CodeCraft.DataBase = new (function () {
                                     break;
 
                                 case 'Object[]':
-                                    if (typeof (val) !== '[object Array]' || !_bt.IsNotNullValue(val)) {
+                                    if (!_bt.IsArray(val) || !_bt.IsNotNullValue(val)) {
                                         val = [];
                                     }
                                     else {
@@ -890,7 +890,7 @@ CodeCraft.DataBase = new (function () {
                                         break;
 
                                     case 'Object[]':
-                                        if (typeof (val) !== '[object Array]' || !_bt.IsNotNullValue(val)) {
+                                        if (!_bt.IsArray(val) || !_bt.IsNotNullValue(val)) {
                                             val = [];
                                         }
                                         else {
