@@ -714,7 +714,7 @@ CodeCraft.DataBase = new (function () {
                     }
                     else {
                         if (!cRule.AllowSet) {
-                            newRow[cRule.Name] = null;
+                            newRow[cRule.Name] = cRule.CheckValue(val);
                             countOK++;
                         }
                         else {
