@@ -229,7 +229,7 @@ CodeCraft.DataBase = new (function () {
         * @memberof DataBaseError
         */
         InvalidType: 'InvalidType'
-    }
+    };
 
 
 
