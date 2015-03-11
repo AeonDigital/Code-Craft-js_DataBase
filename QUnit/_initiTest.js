@@ -1,67 +1,67 @@
 var SetTestDataBase = function () {
     var Endereco = [{
-        Name: 'Logradouro',
-        Type: 'String',
-        AllowSet: true,
-        AllowNull: false,
-        AllowEmpty: false,
-        Unique: false,
-        ReadOnly: false,
-        Default: null,
-        FormatSet: null
-    },
-    {
-        Name: 'Numero',
-        Type: 'Short',
-        AllowSet: true,
-        AllowNull: false,
-        AllowEmpty: false,
-        Unique: false,
-        ReadOnly: false,
-        Default: null,
-        FormatSet: null
-    }
+            Name: 'Logradouro',
+            Type: 'String',
+            AllowSet: true,
+            AllowNull: false,
+            AllowEmpty: false,
+            Unique: false,
+            ReadOnly: false,
+            Default: null,
+            FormatSet: null
+        },
+        {
+            Name: 'Numero',
+            Type: 'Short',
+            AllowSet: true,
+            AllowNull: false,
+            AllowEmpty: false,
+            Unique: false,
+            ReadOnly: false,
+            Default: null,
+            FormatSet: null
+        }
     ];
 
 
 
     var Telefone = [{
-        Name: 'Numero',
-        Type: 'String',
-        AllowSet: true,
-        AllowNull: false,
-        AllowEmpty: false,
-        Unique: false,
-        ReadOnly: false,
-        Default: null,
-        FormatSet: null
-    },
-    {
-        Name: 'Movel',
-        Type: 'Boolean',
-        AllowSet: true,
-        AllowNull: false,
-        AllowEmpty: false,
-        Unique: false,
-        ReadOnly: false,
-        Default: true,
-        FormatSet: null
-    }
+            Name: 'Numero',
+            Type: 'String',
+            AllowSet: true,
+            AllowNull: false,
+            AllowEmpty: false,
+            Unique: false,
+            ReadOnly: false,
+            Default: null,
+            FormatSet: null
+        },
+        {
+            Name: 'Movel',
+            Type: 'Boolean',
+            AllowSet: true,
+            AllowNull: false,
+            AllowEmpty: false,
+            Unique: false,
+            ReadOnly: false,
+            Default: true,
+            FormatSet: null
+        }
     ];
 
 
 
     var Cliente = [{
-        Name: 'Nome',
-        Type: 'String',
-        AllowSet: true,
-        AllowNull: false,
-        AllowEmpty: false,
-        Unique: false,
-        ReadOnly: false,
-        Default: null,
-        FormatSet: null
-    },
+            Name: 'Nome',
+            Type: 'String',
+            AllowSet: true,
+            AllowNull: false,
+            AllowEmpty: false,
+            Unique: false,
+            ReadOnly: false,
+            Default: null,
+            FormatSet: null
+        },
         {
             Name: 'Login',
             Type: 'String',
@@ -152,7 +152,7 @@ var SetTestDataBase = function () {
             Default: null,
             FormatSet: null
         }
-        ];
+    ];
 
 
 

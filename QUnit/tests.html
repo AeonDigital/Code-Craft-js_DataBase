@@ -24,7 +24,7 @@
             var DataBase = CodeCraft.DataBase;
 
 
-
+            
             test('CreateTable', function () {
                 DataBase.ResetDataBase();
                 SetTestDataBase();
@@ -85,7 +85,7 @@
 
 
 
-
+            
             test('InsertInto', function () {
                 DataBase.ResetDataBase();
                 SetTestDataBase();
@@ -98,6 +98,7 @@
                 // VERIFICA SE OS DADOS INSERIDOS CONFEREM COM O OBJETO RETORNADO
                 var db = DataBase.RetrieveDataBase();
                 equal(db[0].Rows.length, 7, '');
+                console.log(db[0].Rows[0]);
 
                 equal(db[0].Rows[0].Nome, oCliente.Nome, '');
                 equal(db[0].Rows[0].Login, oCliente.Login.toLowerCase(), '');
@@ -105,7 +106,7 @@
                 equal(db[0].Rows[0].CPF, oCliente.CPF, '');
                 equal(db[0].Rows[0].CNPJ, oCliente.CNPJ, '');
                 equal(JSON.stringify(db[0].Rows[0].DataNascimento), JSON.stringify(oCliente.DataNascimento), '');
-                equal(db[0].Rows[0].Idade, null, '');
+                equal(db[0].Rows[0].Idade, 10, '');
             });
 
 
@@ -115,7 +116,7 @@
 
 
 
-
+            
             test('UpdateSet', function () {
                 DataBase.ResetDataBase();
                 SetTestDataBase();
@@ -148,7 +149,7 @@
 
 
 
-
+            
 
             test('DeleteFrom', function () {
                 DataBase.ResetDataBase();
@@ -174,7 +175,7 @@
 
 
 
-
+            
             test('SelectObject', function () {
                 DataBase.ResetDataBase();
                 SetTestDataBase();
@@ -185,7 +186,7 @@
 
                 // Corrige objeto original para posterior comparação
                 oCliente['Id'] = 1;
-                oCliente['Idade'] = null;
+                oCliente['Idade'] = 10;
                 oCliente['Login'] = oCliente['Login'].toLowerCase();
 
 
@@ -213,7 +214,7 @@
 
 
 
-
+            
             test('SelectObjectList', function () {
                 DataBase.ResetDataBase();
                 SetTestDataBase();
@@ -282,7 +283,7 @@
 
 
 
-
+            
             test('SelectObjectList : Order By', function () {
                 DataBase.ResetDataBase();
                 SetTestDataBase();
@@ -392,7 +393,7 @@
 
 
 
-
+            
             test('InsertInto - child', function () {
                 DataBase.ResetDataBase();
                 SetTestDataBase();
@@ -440,7 +441,7 @@
                 equal(o.CPF, oCliente.CPF, '');
                 equal(o.CNPJ, oCliente.CNPJ, '');
                 equal(JSON.stringify(o.DataNascimento), JSON.stringify(oCliente.DataNascimento), '');
-                equal(o.Idade, null, '');
+                equal(o.Idade, oCliente.Idade, '');
 
                 equal(o.Endereco.Logradouro, oCliente.Endereco.Logradouro, '');
                 equal(o.Endereco.Numero, oCliente.Endereco.Numero, '');
