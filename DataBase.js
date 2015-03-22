@@ -713,6 +713,8 @@ CodeCraft.DataBase = new (function () {
                         countOK++;
                     }
                     else {
+
+                        // Se não permite setar valores para esta coluna...
                         if (!cRule.AllowSet) {
                             newRow[cRule.Name] = cRule.CheckValue(val);
                             countOK++;
@@ -754,11 +756,11 @@ CodeCraft.DataBase = new (function () {
                                         // Havendo qualquer erro, remove todos os objetos adicionados
                                         // e o insert como um todo falhará.
                                         if (!isOK) {
-                                            nVal = undefined;
                                             for (var it in nVal) {
                                                 CodeCraft.DataBase.DeleteFrom(cRule.RefType, nVal[it]['Id']);
                                                 _nextProcessId--;
                                             }
+                                            nVal = undefined;
                                         }
 
                                         val = nVal;
@@ -911,11 +913,11 @@ CodeCraft.DataBase = new (function () {
                                             // Havendo qualquer erro, remove todos os objetos adicionados
                                             // e o insert como um todo falhará.
                                             if (!isOK) {
-                                                nVal = undefined;
                                                 for (var it in nVal) {
                                                     CodeCraft.DataBase.DeleteFrom(cRule.RefType, nVal[it]['Id']);
                                                     _nextProcessId--;
                                                 }
+                                                nVal = undefined;
                                             }
 
                                             val = nVal;
