@@ -170,17 +170,17 @@ CodeCraft.DataBase = new (function () {
     */
     var DataBaseError = {
         /** 
-        * Tabela já existente. 
-        *
-        * @memberof DataBaseError
-        */
-        TableAlreadyExists: 'TableAlreadyExists',
-        /** 
         * Tabela não existe. 
         *
         * @memberof DataBaseError
         */
         TableDoesNotExist: 'TableDoesNotExist',
+        /** 
+        * Tabela já existente. 
+        *
+        * @memberof DataBaseError
+        */
+        TableAlreadyExists: 'TableAlreadyExists',
         /** 
         * Coluna já existente. 
         *
@@ -194,41 +194,11 @@ CodeCraft.DataBase = new (function () {
         */
         InvalidOrNullDataObject: 'InvalidOrNullDataObject',
         /** 
-        * O valor passado foi considerado inválido. 
-        *
-        * @memberof DataBaseError
-        */
-        InvalidValue: 'InvalidValue',
-        /** 
-        * Valores nulos não são aceitos. 
-        *
-        * @memberof DataBaseError
-        */
-        DoesNotAcceptNullValues: 'DoesNotAcceptNullValues',
-        /** 
-        * Tamanho máximo da string foi atinjido. 
-        *
-        * @memberof DataBaseError
-        */
-        MaxLengthExceeded: 'MaxLengthExceeded',
-        /** 
-        * Valor fora da faixa permitida. 
-        *
-        * @memberof DataBaseError
-        */
-        OutOfRange: 'OutOfRange',
-        /** 
         * Regra de valor único foi violada. 
         *
         * @memberof DataBaseError
         */
-        UniqueConstraintViolated: 'UniqueConstraintViolated',
-        /** 
-        * Tabela já existente. 
-        *
-        * @memberof DataBaseError
-        */
-        InvalidType: 'InvalidType'
+        UniqueConstraintViolated: 'UniqueConstraintViolated'
     };
 
 
