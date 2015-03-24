@@ -291,7 +291,7 @@ CodeCraft.DataBase = new (function () {
     *
     * @param {String}                        parTable                            Nome da tabela de dados.
     *
-    * @return {!DataTable}
+    * @return {?DataTable}
     */
     var _selectTable = function (parTable) {
         var r = null;
@@ -317,7 +317,7 @@ CodeCraft.DataBase = new (function () {
     *
     * @param {String}                        parTable                            Nome da tabela de dados.
     *
-    * @return {!Integer}
+    * @return {?Integer}
     */
     var _retrieveLastId = function (parTable) {
         var r = null;
@@ -470,7 +470,7 @@ CodeCraft.DataBase = new (function () {
         * @param {String}                        parTable                            Nome da tabela.
         * @param {String}                        parColumn                           Nome da coluna.
         *
-        * @return {!ComplexType}
+        * @return {?ComplexType}
         */
         RetrieveComplexType: function (parTable, parColumn) {
             var tab = _selectTable(parTable);
@@ -966,7 +966,7 @@ CodeCraft.DataBase = new (function () {
         * @param {String}                       parTable                        Nome da tabela de dados.
         * @param {JSON}                         rowData                         Dados que serão adicionados.
         *
-        * @return {!Object}
+        * @return {?Object}
         */
         SaveOrUpdate: function (parTable, rowData) {
             var o = null;
@@ -1050,7 +1050,7 @@ CodeCraft.DataBase = new (function () {
         * @param {String}                       parTable                        Nome da tabela de dados.
         * @param {Integer}                      Id                              Id da linha de dados que será retornada.
         *
-        * @return {!Object}
+        * @return {?Object}
         */
         SelectObject: function (parTable, Id) {
 
