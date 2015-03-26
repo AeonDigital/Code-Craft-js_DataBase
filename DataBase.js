@@ -1093,7 +1093,7 @@ CodeCraft.DataBase = new (function () {
         * @param {String}                       parTable                        Nome da tabela de dados.
         * @param {QueryFilter}                  [filter]                        Configurações para o retorno dos dados.
         *
-        * @return {Object[]}
+        * @return {DataList}
         */
         SelectObjectList: function (parTable, filter) {
             var o = {
