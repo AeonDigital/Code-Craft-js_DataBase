@@ -77,7 +77,7 @@ CodeCraft.DataBase = new (function () {
     /**
     * Objeto de configuração de uma consulta.
     * 
-    * @deftype {QueryFilter}
+    * @deftype {PageListConfig}
     *
     * @property {[Object|Function]}            Where                               Objeto ou função contendo as regras de identificação de objetos válidos.
     * @property {String}                       OrderBy = Id asc                    Nome da coluna que será usada para ordenar os dados e formato da ordenação asc|desc
@@ -170,17 +170,17 @@ CodeCraft.DataBase = new (function () {
     */
     var DataBaseError = {
         /** 
-        * Tabela não existe. 
-        *
-        * @memberof DataBaseError
-        */
-        TableDoesNotExist: 'TableDoesNotExist',
-        /** 
         * Tabela já existente. 
         *
         * @memberof DataBaseError
         */
         TableAlreadyExists: 'TableAlreadyExists',
+        /** 
+        * Tabela não existe. 
+        *
+        * @memberof DataBaseError
+        */
+        TableDoesNotExist: 'TableDoesNotExist',
         /** 
         * Coluna já existente. 
         *
@@ -194,11 +194,41 @@ CodeCraft.DataBase = new (function () {
         */
         InvalidOrNullDataObject: 'InvalidOrNullDataObject',
         /** 
+        * O valor passado foi considerado inválido. 
+        *
+        * @memberof DataBaseError
+        */
+        InvalidValue: 'InvalidValue',
+        /** 
+        * Valores nulos não são aceitos. 
+        *
+        * @memberof DataBaseError
+        */
+        DoesNotAcceptNullValues: 'DoesNotAcceptNullValues',
+        /** 
+        * Tamanho máximo da string foi atinjido. 
+        *
+        * @memberof DataBaseError
+        */
+        MaxLengthExceeded: 'MaxLengthExceeded',
+        /** 
+        * Valor fora da faixa permitida. 
+        *
+        * @memberof DataBaseError
+        */
+        OutOfRange: 'OutOfRange',
+        /** 
         * Regra de valor único foi violada. 
         *
         * @memberof DataBaseError
         */
-        UniqueConstraintViolated: 'UniqueConstraintViolated'
+        UniqueConstraintViolated: 'UniqueConstraintViolated',
+        /** 
+        * Tabela já existente. 
+        *
+        * @memberof DataBaseError
+        */
+        InvalidType: 'InvalidType'
     };
 
 
@@ -291,7 +321,7 @@ CodeCraft.DataBase = new (function () {
     *
     * @param {String}                        parTable                            Nome da tabela de dados.
     *
-    * @return {?DataTable}
+    * @return {!DataTable}
     */
     var _selectTable = function (parTable) {
         var r = null;
@@ -317,7 +347,7 @@ CodeCraft.DataBase = new (function () {
     *
     * @param {String}                        parTable                            Nome da tabela de dados.
     *
-    * @return {?Integer}
+    * @return {!Integer}
     */
     var _retrieveLastId = function (parTable) {
         var r = null;
@@ -376,15 +406,15 @@ CodeCraft.DataBase = new (function () {
 
 
     /**
-    * Corrige sets de um objeto "QueryFilter".
+    * Corrige sets de um objeto "PageListConfig".
     * 
     * @function _ajustQueryFilter
     *
     * @private
     *
-    * @param {QueryFilter}                  filter                          Objeto que será verificado.
+    * @param {PageListConfig}               filter                          Objeto que será verificado.
     *
-    * @return {QueryFilter}
+    * @return {PageListConfig}
     */
     var _ajustQueryFilter = function (filter) {
         var model = {
@@ -470,7 +500,7 @@ CodeCraft.DataBase = new (function () {
         * @param {String}                        parTable                            Nome da tabela.
         * @param {String}                        parColumn                           Nome da coluna.
         *
-        * @return {?ComplexType}
+        * @return {!ComplexType}
         */
         RetrieveComplexType: function (parTable, parColumn) {
             var tab = _selectTable(parTable);
@@ -683,8 +713,6 @@ CodeCraft.DataBase = new (function () {
                         countOK++;
                     }
                     else {
-
-                        // Se não permite setar valores para esta coluna...
                         if (!cRule.AllowSet) {
                             newRow[cRule.Name] = cRule.CheckValue(val);
                             countOK++;
@@ -726,11 +754,11 @@ CodeCraft.DataBase = new (function () {
                                         // Havendo qualquer erro, remove todos os objetos adicionados
                                         // e o insert como um todo falhará.
                                         if (!isOK) {
+                                            nVal = undefined;
                                             for (var it in nVal) {
                                                 CodeCraft.DataBase.DeleteFrom(cRule.RefType, nVal[it]['Id']);
                                                 _nextProcessId--;
                                             }
-                                            nVal = undefined;
                                         }
 
                                         val = nVal;
@@ -883,11 +911,11 @@ CodeCraft.DataBase = new (function () {
                                             // Havendo qualquer erro, remove todos os objetos adicionados
                                             // e o insert como um todo falhará.
                                             if (!isOK) {
+                                                nVal = undefined;
                                                 for (var it in nVal) {
                                                     CodeCraft.DataBase.DeleteFrom(cRule.RefType, nVal[it]['Id']);
                                                     _nextProcessId--;
                                                 }
-                                                nVal = undefined;
                                             }
 
                                             val = nVal;
@@ -966,7 +994,7 @@ CodeCraft.DataBase = new (function () {
         * @param {String}                       parTable                        Nome da tabela de dados.
         * @param {JSON}                         rowData                         Dados que serão adicionados.
         *
-        * @return {?Object}
+        * @return {!Object}
         */
         SaveOrUpdate: function (parTable, rowData) {
             var o = null;
@@ -1050,7 +1078,7 @@ CodeCraft.DataBase = new (function () {
         * @param {String}                       parTable                        Nome da tabela de dados.
         * @param {Integer}                      Id                              Id da linha de dados que será retornada.
         *
-        * @return {?Object}
+        * @return {!Object}
         */
         SelectObject: function (parTable, Id) {
 
@@ -1091,9 +1119,9 @@ CodeCraft.DataBase = new (function () {
         * @memberof DataBase
         *
         * @param {String}                       parTable                        Nome da tabela de dados.
-        * @param {QueryFilter}                  [filter]                        Configurações para o retorno dos dados.
+        * @param {PageListConfig}               [filter]                        Configurações para o retorno dos dados.
         *
-        * @return {DataList}
+        * @return {Object[]}
         */
         SelectObjectList: function (parTable, filter) {
             var o = {
